@@ -1,7 +1,6 @@
 #                                                ＳＣＨＥＤＵＬＥ_ＢＯＴ  𝐛𝐲 @𝐦𝐨𝐧𝐭𝐚𝐚𝐧𝐚𝐪 
 
 #                                                         Imports
-
 import time
 from aiogram import Dispatcher, Bot, types
 from aiogram.utils import executor
@@ -12,11 +11,9 @@ from aiogram.dispatcher import FSMContext
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from datetime import datetime
-from config import BOT_TOKEN, admin_id, users
-from messages import (full_schedule_first, full_schedule_second, uchitelya, cheliki,
-                      monday, tuesday_first, tuesday_second, wednesday_first, wednesday_second, thursday_first,
-                      thursday_second,
-                      friday, saturday_first, saturday_second)
+from config import BOT_TOKEN, admin_id
+import messages_10t_1 as msg_10t_1
+import messages_10t_2 as msg_10t_2
 
 import sqlite3 as sql
 
@@ -41,6 +38,10 @@ async def main():
 
 async def on_startup(_):
     await db_start()
+    await msg_10t_1.create_subjects()
+    await msg_10t_1.add_subjects()
+    await msg_10t_2.create_subjects()
+    await msg_10t_2.add_subjects()
     print('Database started!')
     print('Bot started!')
 
@@ -55,13 +56,13 @@ dp = Dispatcher(bot, storage=storage)
 
 
 # ---------------------------------------------------- Notifications ---------------------------------------------------
-@dp.message_handler(commands=['webapp'])
-async def webapp(message: types.Message):
-    markup = types.ReplyKeyboardMarkup()
-    webapp = types.WebAppInfo("https://schedule-bot.netlify.app")
-    web = types.KeyboardButton('🔗 Расписание', web_app=webapp)
-    markup.add(web)
-    await bot.send_message(chat_id=message.chat.id, text='Привет! Нажми кнопку ниже, чтобы открыть сайт', reply_markup=markup)
+# @dp.message_handler(commands=['webapp'])
+# async def webapp(message: types.Message):
+#     markup = types.ReplyKeyboardMarkup()
+#     webapp = types.WebAppInfo("https://schedule-bot.netlify.app")
+#     web = types.KeyboardButton('🔗 Расписание', web_app=webapp)
+#     markup.add(web)
+#     await bot.send_message(chat_id=message.chat.id, text='Привет! Нажми кнопку ниже, чтобы открыть сайт', reply_markup=markup)
 
 @dp.message_handler(commands=['notify'])
 async def notifications(message: types.Message):
@@ -70,9 +71,12 @@ async def notifications(message: types.Message):
     off = types.InlineKeyboardButton('🔕 Выключить оповещения', callback_data='off_notifications')
     markup.add(on)
     markup.add(off)
-    await bot.send_message(chat_id=message.chat.id,
+    if message.from_user.id == message.chat.id:
+        await bot.send_message(chat_id=message.chat.id,
                            text='Чтобы включить или выключить оповещения от бота, нажмите на кнопки ниже.',
                            reply_markup=markup)
+    else:
+        await bot.send_message(chat_id=message.chat.id, text="Данная функция работает только в личных сообщениях!")
 
 async def notify_db(id, isNotified):
     cur.execute('UPDATE users SET isNotified = "{isNotified}" WHERE tg_id = "{id}"'.format(isNotified=isNotified, id=id))
@@ -88,37 +92,37 @@ async def off_notify(message: types.Message):
     await bot.send_message(chat_id=message.chat.id,
                            text='✅ Успешно! Оповещения о расписании <i>выключены</i>. <b>Теперь они не будут больше приходить.</b>',
                            parse_mode='html')
-    
+
 async def send_message_cron():
     users_first = [row[0] for row in cur.execute('SELECT tg_id FROM users WHERE isNotified = "{isNotified}" AND group_id = "{group_id}"'.format(isNotified=1, group_id=1)).fetchall()]
     users_second = [i[0] for i in cur.execute('SELECT tg_id FROM users WHERE isNotified = "{isNotified}" AND group_id = "{group_id}"'.format(isNotified=1, group_id=2)).fetchall()]
     print(users_first)
     for user in users_first:
         if datetime.now().weekday() == 0:
-            await bot.send_message(chat_id=user, text=monday, parse_mode='html')
+            await bot.send_message(chat_id=user, text=msg_10t_1.monday, parse_mode='html')
         if datetime.now().weekday() == 1:
-            await bot.send_message(chat_id=user, text=tuesday_first, parse_mode='html')
+            await bot.send_message(chat_id=user, text=msg_10t_1.tuesday_first, parse_mode='html')
         if datetime.now().weekday() == 2:
-            await bot.send_message(chat_id=user, text=wednesday_first, parse_mode='html')
+            await bot.send_message(chat_id=user, text=msg_10t_1.wednesday_first, parse_mode='html')
         if datetime.now().weekday() == 3:
-            await bot.send_message(chat_id=user, text=thursday_first, parse_mode='html')
+            await bot.send_message(chat_id=user, text=msg_10t_1.thursday_first, parse_mode='html')
         if datetime.now().weekday() == 4:
-            await bot.send_message(chat_id=user, text=friday, parse_mode='html')
+            await bot.send_message(chat_id=user, text=msg_10t_1.friday, parse_mode='html')
         if datetime.now().weekday() == 5:
-            await bot.send_message(chat_id=user, text=saturday_first, parse_mode='html')
+            await bot.send_message(chat_id=user, text=msg_10t_1.saturday_first, parse_mode='html')
     for user_2 in users_second:
         if datetime.now().weekday() == 0:
-            await bot.send_message(chat_id=user_2, text=monday, parse_mode='html')
+            await bot.send_message(chat_id=user_2, text=msg_10t_2.monday, parse_mode='html')
         if datetime.now().weekday() == 1:
-            await bot.send_message(chat_id=user_2, text=tuesday_second, parse_mode='html')
+            await bot.send_message(chat_id=user_2, text=msg_10t_2.tuesday_second, parse_mode='html')
         if datetime.now().weekday() == 2:
-            await bot.send_message(chat_id=user_2, text=wednesday_second, parse_mode='html')
+            await bot.send_message(chat_id=user_2, text=msg_10t_2.wednesday_second, parse_mode='html')
         if datetime.now().weekday() == 3:
-            await bot.send_message(chat_id=user_2, text=thursday_second, parse_mode='html')
+            await bot.send_message(chat_id=user_2, text=msg_10t_2.thursday_second, parse_mode='html')
         if datetime.now().weekday() == 4:
-            await bot.send_message(chat_id=user_2, text=friday, parse_mode='html')
+            await bot.send_message(chat_id=user_2, text=msg_10t_2.friday, parse_mode='html')
         if datetime.now().weekday() == 5:
-            await bot.send_message(chat_id=user_2, text=saturday_second, parse_mode='html')
+            await bot.send_message(chat_id=user_2, text=msg_10t_2.saturday_second, parse_mode='html')
 
 scheduler = AsyncIOScheduler(timezone='Europe/Moscow')
 scheduler.add_job(send_message_cron, 'cron', day_of_week='mon-sat', hour=7, minute=45)
@@ -178,7 +182,7 @@ async def process_message_get(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data.get('message')
         if message.text == 'Мой класс':
-            await bot.send_message(chat_id=message.chat.id, text=cheliki, parse_mode='html')
+            await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.cheliki, parse_mode='html')
         data['wait_for_message'] = message.text
     await Form.next()
 
@@ -211,23 +215,23 @@ async def start_schedule_first(message: types.Message):
     await bot.send_message(chat_id=message.chat.id,
                            text='Хороош, теперь можешь пользоваться ботом! Твоя группа: <b>1</b>', reply_markup=markup,
                            parse_mode='html')
-    
+
 async def start_schedule_second(message: types.Message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    tommorow = types.KeyboardButton('На завтра.')
-    today = types.KeyboardButton('На сегодня.')
-    days = types.KeyboardButton('По дням.')
+    tommorow = types.KeyboardButton('На завтра')
+    today = types.KeyboardButton('На сегодня')
+    days = types.KeyboardButton('По дням')
     comm = types.KeyboardButton('Обратная связь')
     donate = types.KeyboardButton('Донат')
-    full = types.KeyboardButton('Полностью.')
+    full = types.KeyboardButton('Полностью')
     uchitelya = types.KeyboardButton('Учителя')
     my_class = types.KeyboardButton('Мой класс')
-    profile = types.KeyboardButton('Профиль.')
+    profile = types.KeyboardButton('Профиль')
     markup.add(tommorow, today, days, full, uchitelya, my_class, comm, donate, profile)
     await bot.send_message(chat_id=message.chat.id,
                            text='Хороош, теперь можешь пользоваться ботом! Твоя группа: <b>2</b>', reply_markup=markup,
                            parse_mode='html')
-    Form.wait_for_message.set()
+    await Form.wait_for_message.set()
 
 
 async def donate(message: types.Message):
@@ -247,7 +251,7 @@ async def change_group(message: types.Message):
 
 
 async def my_class(message):
-    await bot.send_message(chat_id=message.chat.id, text=cheliki, parse_mode='html')
+    await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.cheliki, parse_mode='html')
 
 
 async def changes_in_schedule(message: types.Message):
@@ -256,11 +260,14 @@ async def changes_in_schedule(message: types.Message):
 
 @dp.message_handler(content_types=['text'])
 async def func(message: types.Message):
+        group_id = cur.execute('SELECT group_id FROM users WHERE tg_id ="{user_id}"'.format(user_id=message.from_user.id)).fetchone()[0]
+
         if (message.text == 'Мой класс'):
-            await bot.send_message(chat_id=message.chat.id, text=cheliki, parse_mode='html')
+            await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.cheliki, parse_mode='html')
         if (message.text == 'Учителя'):
-            await bot.send_message(chat_id=message.chat.id, text=uchitelya, parse_mode='html')
-        if (message.text == 'По дням'):
+            await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.uchitelya, parse_mode='html')
+
+        if (message.text == 'По дням' and group_id == 1):
             markup = types.InlineKeyboardMarkup().add(
                 types.InlineKeyboardButton('Понедельник', callback_data='monday_first'),
                 types.InlineKeyboardButton('Вторник', callback_data='tuesday_first'),
@@ -271,7 +278,7 @@ async def func(message: types.Message):
             )
             await bot.send_message(chat_id=message.chat.id, text='Здесь вы можете выбрать расписание по дням',
                                 reply_markup=markup)
-        if (message.text == 'По дням.'):
+        if (message.text == 'По дням' and group_id == 2):
             markup = types.InlineKeyboardMarkup().add(
                 types.InlineKeyboardButton('Понедельник', callback_data='monday_second'),
                 types.InlineKeyboardButton('Вторник', callback_data='tuesday_second'),
@@ -282,74 +289,81 @@ async def func(message: types.Message):
             )
             await bot.send_message(chat_id=message.chat.id, text='Здесь вы можете выбрать расписание по дням',
                                 reply_markup=markup)
-        if (message.text == 'Полностью'):
-            await bot.send_message(chat_id=message.chat.id, text=full_schedule_first, parse_mode='html')
-        if (message.text == 'Полностью.'):
-            await bot.send_message(chat_id=message.chat.id, text=full_schedule_second, parse_mode='html')
-        if (message.text == 'На завтра'):
+            
+        if (message.text == 'Полностью' and group_id == 1):
+            await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.full_schedule_first, parse_mode='html')
+
+        if (message.text == 'Полностью' and group_id == 2):
+            await bot.send_message(chat_id=message.chat.id, text=msg_10t_2.full_schedule_second, parse_mode='html')
+
+        if (message.text == 'На завтра'  and group_id == 1):
+            print(group_id)
             if (datetime.now().weekday() + 1 == 0):
-                await bot.send_message(chat_id=message.chat.id, text=monday, parse_mode='html')
+                await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.monday, parse_mode='html')
             if (datetime.now().weekday() + 1 == 1):
-                await bot.send_message(chat_id=message.chat.id, text=tuesday_first, parse_mode='html')
+                await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.tuesday_first, parse_mode='html')
             if (datetime.now().weekday() + 1 == 2):
-                await bot.send_message(chat_id=message.chat.id, text=wednesday_first, parse_mode='html')
+                await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.wednesday_first, parse_mode='html')
             if (datetime.now().weekday() + 1 == 3):
-                await bot.send_message(chat_id=message.chat.id, text=thursday_first, parse_mode='html')
+                await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.thursday_first, parse_mode='html')
             if (datetime.now().weekday() + 1 == 4):
-                await bot.send_message(chat_id=message.chat.id, text=friday, parse_mode='html')
+                await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.friday, parse_mode='html')
             if (datetime.now().weekday() + 1 == 5):
-                await bot.send_message(chat_id=message.chat.id, text=saturday_first, parse_mode='html')
+                await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.saturday_first, parse_mode='html')
             if (datetime.now().weekday() + 1 == 7):
-                await bot.send_message(chat_id=message.chat.id, text=monday, parse_mode='html')
+                await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.monday, parse_mode='html')
             if (datetime.now().weekday() + 1 == 6):
-                await bot.send_message(chat_id=message.chat.id, text='Завтра воскресенье кайфуй!)')
-        if (message.text == 'На завтра.'):
+                await bot.send_message(chat_id=message.chat.id, text='Завтра выходной!')
+
+        if (message.text == 'На завтра' and group_id == 2):
+            print(group_id)
             if (datetime.now().weekday() + 1 == 0):
-                await bot.send_message(chat_id=message.chat.id, text=monday, parse_mode='html')
+                await bot.send_message(chat_id=message.chat.id, text=msg_10t_2.monday, parse_mode='html')
             if (datetime.now().weekday() + 1 == 1):
-                await bot.send_message(chat_id=message.chat.id, text=tuesday_second, parse_mode='html')
+                await bot.send_message(chat_id=message.chat.id, text=msg_10t_2.tuesday_second, parse_mode='html')
             if (datetime.now().weekday() + 1 == 2):
-                await bot.send_message(chat_id=message.chat.id, text=wednesday_second, parse_mode='html')
+                await bot.send_message(chat_id=message.chat.id, text=msg_10t_2.wednesday_second, parse_mode='html')
             if (datetime.now().weekday() + 1 == 3):
-                await bot.send_message(chat_id=message.chat.id, text=thursday_second, parse_mode='html')
+                await bot.send_message(chat_id=message.chat.id, text=msg_10t_2.thursday_second, parse_mode='html')
             if (datetime.now().weekday() + 1 == 4):
-                await bot.send_message(chat_id=message.chat.id, text=friday, parse_mode='html')
+                await bot.send_message(chat_id=message.chat.id, text=msg_10t_2.friday, parse_mode='html')
             if (datetime.now().weekday() + 1 == 5):
-                await bot.send_message(chat_id=message.chat.id, text=saturday_second, parse_mode='html')
+                await bot.send_message(chat_id=message.chat.id, text=msg_10t_2.saturday_second, parse_mode='html')
             if (datetime.now().weekday() + 1 == 7):
-                await bot.send_message(chat_id=message.chat.id, text=monday, parse_mode='html')
+                await bot.send_message(chat_id=message.chat.id, text=msg_10t_2.monday, parse_mode='html')
             if (datetime.now().weekday() + 1 == 6):
-                await bot.send_message(chat_id=message.chat.id, text='Завтра воскресенье кайфуй!)')
-        if (message.text == 'На сегодня'):
+                await bot.send_message(chat_id=message.chat.id, text='Завтра выходной!')
+        if (message.text == 'На сегодня' and group_id == 1):
             if (datetime.now().weekday() == 0):
-                await bot.send_message(chat_id=message.chat.id, text=monday, parse_mode='html')
+                await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.monday, parse_mode='html')
             if (datetime.now().weekday() == 1):
-                await bot.send_message(chat_id=message.chat.id, text=tuesday_first, parse_mode='html')
+                await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.tuesday_first, parse_mode='html')
             if (datetime.now().weekday() == 2):
-                await bot.send_message(chat_id=message.chat.id, text=wednesday_first, parse_mode='html')
+                await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.wednesday_first, parse_mode='html')
             if (datetime.now().weekday() == 3):
-                await bot.send_message(chat_id=message.chat.id, text=thursday_first, parse_mode='html')
+                await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.thursday_first, parse_mode='html')
             if (datetime.now().weekday() == 4):
-                await bot.send_message(chat_id=message.chat.id, text=friday, parse_mode='html')
+                await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.friday, parse_mode='html')
             if (datetime.now().weekday() == 5):
-                await bot.send_message(chat_id=message.chat.id, text=saturday_first, parse_mode='html')
+                await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.saturday_first, parse_mode='html')
             if (datetime.now().weekday() == 6):
-                await bot.send_message(chat_id=message.chat.id, text='Сегодня воскресенье кайфуй!)')
-        if (message.text == 'На сегодня.'):
+                await bot.send_message(chat_id=message.chat.id, text='Сегодня выходной!')
+        if (message.text == 'На сегодня' and group_id == 2):
             if (datetime.now().weekday() == 0):
-                await bot.send_message(chat_id=message.chat.id, text=monday, parse_mode='html')
+                await bot.send_message(chat_id=message.chat.id, text=msg_10t_2.monday, parse_mode='html')
             if (datetime.now().weekday() == 1):
-                await bot.send_message(chat_id=message.chat.id, text=tuesday_second, parse_mode='html')
+                await bot.send_message(chat_id=message.chat.id, text=msg_10t_2.tuesday_second, parse_mode='html')
             if (datetime.now().weekday() == 2):
-                await bot.send_message(chat_id=message.chat.id, text=wednesday_second, parse_mode='html')
+                await bot.send_message(chat_id=message.chat.id, text=msg_10t_2.wednesday_second, parse_mode='html')
             if (datetime.now().weekday() == 3):
-                await bot.send_message(chat_id=message.chat.id, text=thursday_second, parse_mode='html')
+                await bot.send_message(chat_id=message.chat.id, text=msg_10t_2.thursday_second, parse_mode='html')
             if (datetime.now().weekday() == 4):
-                await bot.send_message(chat_id=message.chat.id, text=friday, parse_mode='html')
+                await bot.send_message(chat_id=message.chat.id, text=msg_10t_2.friday, parse_mode='html')
             if (datetime.now().weekday() == 5):
-                await bot.send_message(chat_id=message.chat.id, text=saturday_second, parse_mode='html')
+                await bot.send_message(chat_id=message.chat.id, text=msg_10t_2.saturday_second, parse_mode='html')
             if (datetime.now().weekday() == 6):
-                await bot.send_message(chat_id=message.chat.id, text='Сегодня воскресенье кайфуй!)')
+                await bot.send_message(chat_id=message.chat.id, text='Сегодня выходной!')
+
         if message.text == 'Донат':
             markup = types.InlineKeyboardMarkup()
             donatee = types.InlineKeyboardButton('Отправить донат',
@@ -363,7 +377,8 @@ async def func(message: types.Message):
             markup.add(razrab)
             await bot.send_message(chat_id=message.chat.id,
                                 text='Писать только по работе бота, если нашли баг, без лишнего и спама. Чтобы связаться с разработчиком нажмите на кнопку ниже', reply_markup=markup)
-        if (message.text == 'Профиль'):
+            
+        if (message.text == 'Профиль' and group_id == 1):
             markup = types.InlineKeyboardMarkup()
             change_group = types.InlineKeyboardButton('Моя группа', callback_data='change_group')
             donate = types.InlineKeyboardButton('Поддержать проект', callback_data='donate')
@@ -376,7 +391,8 @@ async def func(message: types.Message):
             markup.row(notify)
             markup.row(changes_in_schedule)
             await bot.send_message(chat_id=message.chat.id, text='Профиль', reply_markup=markup)
-        if (message.text == 'Профиль.'):
+
+        if (message.text == 'Профиль' and group_id == 2):
             markup = types.InlineKeyboardMarkup()
             change_group = types.InlineKeyboardButton('Моя группа', callback_data='change_group')
             donate = types.InlineKeyboardButton('Поддержать проект', callback_data='donate')
@@ -391,7 +407,7 @@ async def func(message: types.Message):
             await bot.send_message(chat_id=message.chat.id, text='Профиль', reply_markup=markup)
 
 async def add_user_to_group(id, group):
-    cur.execute('UPDATE users SET group_id = "{group}" WHERE id = "{id}"'.format(id=id, group=group))
+    cur.execute('UPDATE users SET group_id = {group} WHERE tg_id = "{id}"'.format(id=id, group=group))
     db.commit()
 
 @dp.callback_query_handler()
@@ -407,32 +423,42 @@ async def callback(call: types.CallbackQuery) -> None:
     elif call.data == 'changes_in_schedule':
         await changes_in_schedule(call.message)
     elif call.data == 'monday_first':
-        await call.message.reply(monday, parse_mode='html')
+        await call.message.reply(msg_10t_1.monday, parse_mode='html')
     elif call.data == 'monday_second':
-        await call.message.reply(monday, parse_mode='html')
+        await call.message.reply(msg_10t_2.monday, parse_mode='html')
     elif call.data == 'tuesday_first':
-        await call.message.reply(tuesday_first, parse_mode='html')
+        await call.message.reply(msg_10t_1.tuesday_first, parse_mode='html')
     elif call.data == 'tuesday_second':
-        await call.message.reply(tuesday_second, parse_mode='html')
+        await call.message.reply(msg_10t_2.tuesday_second, parse_mode='html')
     elif call.data == 'wednesday_first':
-        await call.message.reply(wednesday_first, parse_mode='html')
+        await call.message.reply(msg_10t_1.wednesday_first, parse_mode='html')
     elif call.data == 'wednesday_second':
-        await call.message.reply(wednesday_second, parse_mode='html')
+        await call.message.reply(msg_10t_2.wednesday_second, parse_mode='html')
     elif call.data == 'thursday_first':
-        await call.message.reply(thursday_first, parse_mode='html')
+        await call.message.reply(msg_10t_1.thursday_first, parse_mode='html')
     elif call.data == 'thursday_second':
-        await call.message.reply(thursday_second, parse_mode='html')
+        await call.message.reply(msg_10t_2.thursday_second, parse_mode='html')
     elif call.data == 'friday_first':
-        await call.message.reply(friday, parse_mode='html')
+        await call.message.reply(msg_10t_1.friday, parse_mode='html')
     elif call.data == 'friday_second':
-        await call.message.reply(friday, parse_mode='html')
+        await call.message.reply(msg_10t_2.friday, parse_mode='html')
     elif call.data == 'saturday_first':
-        await call.message.reply(saturday_first, parse_mode='html')
+        await call.message.reply(msg_10t_1.saturday_first, parse_mode='html')
     elif call.data == 'saturday_second':
-        await call.message.reply(saturday_second, parse_mode='html')
+        await call.message.reply(msg_10t_2.saturday_second, parse_mode='html')
 
     elif call.data == 'notify':
-        await notifications(call.message)
+          markup = types.InlineKeyboardMarkup()
+          on = types.InlineKeyboardButton('🔔 Включить оповещения', callback_data='on_notifications')
+          off = types.InlineKeyboardButton('🔕 Выключить оповещения', callback_data='off_notifications')
+          markup.add(on)
+          markup.add(off)
+          if call.from_user.id == call.message.chat.id:
+              await bot.send_message(chat_id=call.message.chat.id,
+                                 text='Чтобы включить или выключить оповещения от бота, нажмите на кнопки ниже.',
+                                 reply_markup=markup)
+          else:
+              await bot.send_message(chat_id=call.message.chat.id, text="Данная функция работает только в личных сообщениях!")
     elif call.data == 'on_notifications':
         await notify_db(call.from_user.id, 1)
         await on_notify(call.message)
