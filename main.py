@@ -1,5 +1,3 @@
-#                                                ＳＣＨＥＤＵＬＥ_ＢＯＴ  𝐛𝐲 @𝐦𝐨𝐧𝐭𝐚𝐚𝐧𝐚𝐪 
-
 #                                                         Imports
 import time
 from aiogram import Dispatcher, Bot, types
@@ -28,6 +26,7 @@ async def db_start():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT,
                 tg_id INTEGER,
+                class_id TEXT DEFAULT '1',
                 group_id INTEGER DEFAULT 1,
                 isNotified INTEGER DEFAULT 0
                 )""")    
@@ -38,10 +37,13 @@ async def main():
 
 async def on_startup(_):
     await db_start()
+    
     await msg_10t_1.create_subjects()
     await msg_10t_1.add_subjects()
     await msg_10t_2.create_subjects()
     await msg_10t_2.add_subjects()
+
+
     print('Database started!')
     print('Bot started!')
 
