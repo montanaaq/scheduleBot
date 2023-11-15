@@ -12,8 +12,8 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from datetime import datetime
 from config import BOT_TOKEN, admin_id
-import messages_10t_1 as msg_10t_1
-import messages_10t_2 as msg_10t_2
+import T10.messages_10t_1 as msg_10t_1
+import T10.messages_10t_2 as msg_10t_2
 
 import sqlite3 as sql
 
