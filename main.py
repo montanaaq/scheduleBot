@@ -15,7 +15,7 @@ import T10.messages_10t_2 as msg_10t_2
 
 import sqlite3 as sql
 
-# from background import keep_alive
+from background import keep_alive
 
 db = sql.connect('database.db')
 cur = db.cursor()
@@ -476,6 +476,6 @@ async def callback(call: types.CallbackQuery) -> None:
         await start_schedule_second(call.message)
     elif call.data == 'new_first_group' or call.data == 'new_second_group':
         await notifications(call.message)
-# keep_alive()
+keep_alive()
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True, on_startup=on_startup)
