@@ -1,5 +1,4 @@
 #                                                         Imports
-import time
 from aiogram import Dispatcher, Bot, types
 from aiogram.utils import executor
 from aiogram.dispatcher.filters.state import State, StatesGroup
@@ -10,8 +9,11 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from datetime import datetime
 from config import BOT_TOKEN, admin_id
+
 import T10.messages_10t_1 as msg_10t_1
 import T10.messages_10t_2 as msg_10t_2
+import keyboards as kb
+import T10.send_messages_10t as send_msg_10t
 
 import sqlite3 as sql
 
@@ -38,6 +40,11 @@ async def main():
 async def on_startup(_):
     await db_start()
     
+    # await msg_10t_1.create_subjects()
+    # await msg_10t_2.create_subjects()
+    # await msg_10t_1.start_db_1()
+    # await msg_10t_2.start_db_2()
+
     await msg_10t_1.create_subjects()
     await msg_10t_1.add_subjects()
     await msg_10t_2.create_subjects()
@@ -50,7 +57,6 @@ async def on_startup(_):
 class Form(StatesGroup):
     my_message = State()
     check_class = State()
-    wait_for_message = State()
 
 storage = MemoryStorage()
 bot = Bot(token=BOT_TOKEN)
@@ -98,7 +104,6 @@ async def off_notify(message: types.Message):
 async def send_message_cron():
     users_first = [row[0] for row in cur.execute('SELECT tg_id FROM users WHERE isNotified = "{isNotified}" AND group_id = "{group_id}"'.format(isNotified=1, group_id=1)).fetchall()]
     users_second = [i[0] for i in cur.execute('SELECT tg_id FROM users WHERE isNotified = "{isNotified}" AND group_id = "{group_id}"'.format(isNotified=1, group_id=2)).fetchall()]
-    print(users_first)
     for user in users_first:
         if datetime.now().weekday() == 0:
             await bot.send_message(chat_id=user, text=msg_10t_1.monday, parse_mode='html')
@@ -131,8 +136,8 @@ scheduler.add_job(send_message_cron, 'cron', day_of_week='mon-sat', hour=7, minu
 scheduler.start()
 
 @dp.message_handler(commands=['push'])
-async def push(message):
-    if message.chat.id == admin_id:
+async def push(message: types.Message):
+    if message.chat.id in admin_id:
         await bot.send_message(chat_id=message.chat.id, text='Напиши сообщение: ')
         await Form.my_message.set()
     else:
@@ -150,7 +155,7 @@ async def check_message(message: types.Message):
     for user in users:
         await bot.send_message(chat_id=user, text=message.text, parse_mode='html')
 
-async def cmd_start_db(id, username):
+async def cmd_start_db(id: int, username: str):
     user = cur.execute('SELECT * FROM users WHERE tg_id == {key}'.format(key=id)).fetchone()
     username_name = cur.execute('SELECT * FROM users WHERE username == "{key}"'.format(key=username))
     if not user and username_name:
@@ -161,81 +166,63 @@ async def cmd_start_db(id, username):
 @dp.message_handler(commands=["start"])
 async def start_command(message: types.Message):
         await cmd_start_db(message.from_user.id, f'@{message.from_user.username}')
-        await group_selection(message)
+        await select_class(message)
 
-# @dp.message_handler(state=Form.check_class)
-# async def process_class(message: types.Message, state: FSMContext):
-#     async with state.proxy() as data:
-#         data.get('class_id')
-#         if message.text == '10Т' or message.text == '10т':
-#             await group_selection(message)
-#             user["class_id"] = message.text
-#         elif message.text == '10Г' or message.text == '10г':
-#             await group_selection(message)
-#             user["class_id"] = message.text
-#         elif message.text not in user["class_id"]:
-#             await bot.send_message(chat_id=message.chat.id, text='Такого класса не существует! Попробуйте еще раз: ')
-#             await process_class(message)
-#         data['check_class'] = message.text
-#     await Form.next()
+async def select_class(message: types.Message):
+    await bot.send_message(chat_id=message.chat.id, text="Привет ты запустил бота! Теперь напиши свой класс: ")
+    await Class_id.wait_for_class.set()
 
-@dp.message_handler(state=Form.wait_for_message)
-async def process_message_get(message: types.Message, state: FSMContext):
+class Class_id(StatesGroup):
+    wait_for_class = State()
+
+@dp.message_handler(state=Class_id.wait_for_class)
+async def proccess_select_class(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        data.get('message')
-        if message.text == 'Мой класс':
-            await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.cheliki, parse_mode='html')
-        data['wait_for_message'] = message.text
-    await Form.next()
+        data['wait_for_class'] = message.text
+    await Class_id.next()
+    await complete_class(message)
+
+async def set_class(id: int, class_id: str):
+    cur.execute('UPDATE users SET class_id = "{class_name}" WHERE tg_id = "{id}"'.format(class_name=class_id, id=id))
+
+async def complete_class(message: types.Message):
+    classes = ['10Т']
+    if (isinstance(message.text, str) and 2 <= len(message.text) <= 3 and message.text.upper() in classes):
+        await set_class(message.from_user.id, message.text.upper())
+        await bot.send_message(chat_id=message.from_user.id, text=f'Успешно! Ваш класс: <b>{message.text}</b>', parse_mode='html')
+        await group_selection(message)
+    else:
+        await bot.send_message(chat_id=message.chat.id, text='Ошибка! Введите корректный класс: ')
+        await Class_id.wait_for_class.set()
 
 async def group_selection(message: types.Message):
     markup = types.InlineKeyboardMarkup()
     first_group = types.InlineKeyboardButton('1', callback_data='first_group')
     second_group = types.InlineKeyboardButton('2', callback_data='second_group')
     markup.add(first_group, second_group)
-    await bot.send_message(chat_id=message.chat.id, text='Вы вошли в систему групп!\nВыберите свою группу для продолжения', reply_markup=markup)
+    await bot.send_message(chat_id=message.from_user.id, text='Вы вошли в систему групп!\nВыберите свою группу для продолжения', reply_markup=markup)
 
 async def change_group_start(message):
     markup = types.InlineKeyboardMarkup()
     first_group = types.InlineKeyboardButton('1', callback_data='first_group')
     second_group = types.InlineKeyboardButton('2', callback_data='second_group')
     markup.add(first_group, second_group)
-    await bot.send_message(chat_id=message.chat.id, text='Выбери свою группу', parse_mode='html', reply_markup=markup)
+    await bot.send_message(chat_id=message.from_user.id, text='Выбери свою группу', parse_mode='html', reply_markup=markup)
 
 async def start_schedule_first(message: types.Message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    tommorow = types.KeyboardButton('На завтра')
-    today = types.KeyboardButton('На сегодня')
-    days = types.KeyboardButton('По дням')
-    comm = types.KeyboardButton('Обратная связь')
-    donate = types.KeyboardButton('Донат')
-    full = types.KeyboardButton('Полностью')
-    uchitelya = types.KeyboardButton('Учителя')
-    my_class = types.KeyboardButton('Мой класс')
-    profile = types.KeyboardButton('Профиль')
-    markup.add(tommorow, today, days, full, uchitelya, my_class, comm, donate, profile)
+    markup.add(kb.tommorow, kb.today, kb.days, kb.full, kb.uchitelya, kb.my_class, kb.comm, kb.donate, kb.profile)
     await bot.send_message(chat_id=message.chat.id,
                            text='Хороош, теперь можешь пользоваться ботом! Твоя группа: <b>1</b>', reply_markup=markup,
                            parse_mode='html')
 
 async def start_schedule_second(message: types.Message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    tommorow = types.KeyboardButton('На завтра')
-    today = types.KeyboardButton('На сегодня')
-    days = types.KeyboardButton('По дням')
-    comm = types.KeyboardButton('Обратная связь')
-    donate = types.KeyboardButton('Донат')
-    full = types.KeyboardButton('Полностью')
-    uchitelya = types.KeyboardButton('Учителя')
-    my_class = types.KeyboardButton('Мой класс')
-    profile = types.KeyboardButton('Профиль')
-    markup.add(tommorow, today, days, full, uchitelya, my_class, comm, donate, profile)
+    markup.add(kb.tommorow, kb.today, kb.days, kb.full, kb.uchitelya, kb.my_class, kb.comm, kb.donate, kb.profile)
     await bot.send_message(chat_id=message.chat.id,
                            text='Хороош, теперь можешь пользоваться ботом! Твоя группа: <b>2</b>', reply_markup=markup,
                            parse_mode='html')
-    await Form.wait_for_message.set()
-
-
+    
 async def donate(message: types.Message):
     markup = types.InlineKeyboardMarkup()
     donatee = types.InlineKeyboardButton('Отправить донат', url='https://www.tinkoff.ru/rm/nurislamov.amir8/cktHx65549')
@@ -252,7 +239,7 @@ async def change_group(message: types.Message):
     await bot.send_message(chat_id=message.chat.id, text='Хочешь изменить группу?', reply_markup=markup)
 
 
-async def my_class(message):
+async def my_class(message: types.Message):
     await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.cheliki, parse_mode='html')
 
 
@@ -260,153 +247,13 @@ async def changes_in_schedule(message: types.Message):
     await bot.send_message(chat_id=message.chat.id, text='Пока изменений в расписании не обнаружено.',
                            parse_mode='html')
 
+
+
 @dp.message_handler(content_types=['text'])
 async def func(message: types.Message):
-        group_id = cur.execute('SELECT group_id FROM users WHERE tg_id ="{user_id}"'.format(user_id=message.from_user.id)).fetchone()[0]
+    await send_msg_10t.messages_10t(message)
 
-        if (message.text == 'Мой класс'):
-            await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.cheliki, parse_mode='html')
-        if (message.text == 'Учителя'):
-            await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.uchitelya, parse_mode='html')
 
-        if (message.text == 'По дням' and group_id == 1):
-            markup = types.InlineKeyboardMarkup().add(
-                types.InlineKeyboardButton('Понедельник', callback_data='monday_first'),
-                types.InlineKeyboardButton('Вторник', callback_data='tuesday_first'),
-                types.InlineKeyboardButton('Среда', callback_data='wednesday_first'),
-                types.InlineKeyboardButton('Четверг', callback_data='thursday_first'),
-                types.InlineKeyboardButton('Пятница', callback_data='friday_first'),
-                types.InlineKeyboardButton('Суббота', callback_data='saturday_first'),
-            )
-            await bot.send_message(chat_id=message.chat.id, text='Здесь вы можете выбрать расписание по дням',
-                                reply_markup=markup)
-        if (message.text == 'По дням' and group_id == 2):
-            markup = types.InlineKeyboardMarkup().add(
-                types.InlineKeyboardButton('Понедельник', callback_data='monday_second'),
-                types.InlineKeyboardButton('Вторник', callback_data='tuesday_second'),
-                types.InlineKeyboardButton('Среда', callback_data='wednesday_second'),
-                types.InlineKeyboardButton('Четверг', callback_data='thursday_second'),
-                types.InlineKeyboardButton('Пятница', callback_data='friday_second'),
-                types.InlineKeyboardButton('Суббота', callback_data='saturday_second'),
-            )
-            await bot.send_message(chat_id=message.chat.id, text='Здесь вы можете выбрать расписание по дням',
-                                reply_markup=markup)
-            
-        if (message.text == 'Полностью' and group_id == 1):
-            await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.full_schedule_first, parse_mode='html')
-
-        if (message.text == 'Полностью' and group_id == 2):
-            await bot.send_message(chat_id=message.chat.id, text=msg_10t_2.full_schedule_second, parse_mode='html')
-
-        if (message.text == 'На завтра'  and group_id == 1):
-            print(group_id)
-            if (datetime.now().weekday() + 1 == 0):
-                await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.monday, parse_mode='html')
-            if (datetime.now().weekday() + 1 == 1):
-                await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.tuesday_first, parse_mode='html')
-            if (datetime.now().weekday() + 1 == 2):
-                await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.wednesday_first, parse_mode='html')
-            if (datetime.now().weekday() + 1 == 3):
-                await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.thursday_first, parse_mode='html')
-            if (datetime.now().weekday() + 1 == 4):
-                await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.friday, parse_mode='html')
-            if (datetime.now().weekday() + 1 == 5):
-                await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.saturday_first, parse_mode='html')
-            if (datetime.now().weekday() + 1 == 7):
-                await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.monday, parse_mode='html')
-            if (datetime.now().weekday() + 1 == 6):
-                await bot.send_message(chat_id=message.chat.id, text='Завтра выходной!')
-
-        if (message.text == 'На завтра' and group_id == 2):
-            print(group_id)
-            if (datetime.now().weekday() + 1 == 0):
-                await bot.send_message(chat_id=message.chat.id, text=msg_10t_2.monday, parse_mode='html')
-            if (datetime.now().weekday() + 1 == 1):
-                await bot.send_message(chat_id=message.chat.id, text=msg_10t_2.tuesday_second, parse_mode='html')
-            if (datetime.now().weekday() + 1 == 2):
-                await bot.send_message(chat_id=message.chat.id, text=msg_10t_2.wednesday_second, parse_mode='html')
-            if (datetime.now().weekday() + 1 == 3):
-                await bot.send_message(chat_id=message.chat.id, text=msg_10t_2.thursday_second, parse_mode='html')
-            if (datetime.now().weekday() + 1 == 4):
-                await bot.send_message(chat_id=message.chat.id, text=msg_10t_2.friday, parse_mode='html')
-            if (datetime.now().weekday() + 1 == 5):
-                await bot.send_message(chat_id=message.chat.id, text=msg_10t_2.saturday_second, parse_mode='html')
-            if (datetime.now().weekday() + 1 == 7):
-                await bot.send_message(chat_id=message.chat.id, text=msg_10t_2.monday, parse_mode='html')
-            if (datetime.now().weekday() + 1 == 6):
-                await bot.send_message(chat_id=message.chat.id, text='Завтра выходной!')
-        if (message.text == 'На сегодня' and group_id == 1):
-            if (datetime.now().weekday() == 0):
-                await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.monday, parse_mode='html')
-            if (datetime.now().weekday() == 1):
-                await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.tuesday_first, parse_mode='html')
-            if (datetime.now().weekday() == 2):
-                await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.wednesday_first, parse_mode='html')
-            if (datetime.now().weekday() == 3):
-                await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.thursday_first, parse_mode='html')
-            if (datetime.now().weekday() == 4):
-                await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.friday, parse_mode='html')
-            if (datetime.now().weekday() == 5):
-                await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.saturday_first, parse_mode='html')
-            if (datetime.now().weekday() == 6):
-                await bot.send_message(chat_id=message.chat.id, text='Сегодня выходной!')
-        if (message.text == 'На сегодня' and group_id == 2):
-            if (datetime.now().weekday() == 0):
-                await bot.send_message(chat_id=message.chat.id, text=msg_10t_2.monday, parse_mode='html')
-            if (datetime.now().weekday() == 1):
-                await bot.send_message(chat_id=message.chat.id, text=msg_10t_2.tuesday_second, parse_mode='html')
-            if (datetime.now().weekday() == 2):
-                await bot.send_message(chat_id=message.chat.id, text=msg_10t_2.wednesday_second, parse_mode='html')
-            if (datetime.now().weekday() == 3):
-                await bot.send_message(chat_id=message.chat.id, text=msg_10t_2.thursday_second, parse_mode='html')
-            if (datetime.now().weekday() == 4):
-                await bot.send_message(chat_id=message.chat.id, text=msg_10t_2.friday, parse_mode='html')
-            if (datetime.now().weekday() == 5):
-                await bot.send_message(chat_id=message.chat.id, text=msg_10t_2.saturday_second, parse_mode='html')
-            if (datetime.now().weekday() == 6):
-                await bot.send_message(chat_id=message.chat.id, text='Сегодня выходной!')
-
-        if message.text == 'Донат':
-            markup = types.InlineKeyboardMarkup()
-            donatee = types.InlineKeyboardButton('Отправить донат',
-                                                url='https://www.tinkoff.ru/rm/nurislamov.amir8/cktHx65549')
-            markup.add(donatee)
-            await bot.send_message(chat_id=message.chat.id,
-                                text='Если вам нравится работа бота и вы хотите поддержать разработчика материально, можете отправить донат по кнопке ниже :)', reply_markup=markup)
-        if message.text == 'Обратная связь':
-            markup = types.InlineKeyboardMarkup()
-            razrab = types.InlineKeyboardButton("Продолжить", url='https://t.me/montaanaq')
-            markup.add(razrab)
-            await bot.send_message(chat_id=message.chat.id,
-                                text='Писать только по работе бота, если нашли баг, без лишнего и спама. Чтобы связаться с разработчиком нажмите на кнопку ниже', reply_markup=markup)
-            
-        if (message.text == 'Профиль' and group_id == 1):
-            markup = types.InlineKeyboardMarkup()
-            change_group = types.InlineKeyboardButton('Моя группа', callback_data='change_group')
-            donate = types.InlineKeyboardButton('Поддержать проект', callback_data='donate')
-            my_class = types.InlineKeyboardButton('Мой класс', callback_data='my_class')
-            changes_in_schedule = types.InlineKeyboardButton('Изменения в расписании', callback_data='changes_in_schedule')
-            notify = types.InlineKeyboardButton('Оповещения', callback_data='notify')
-            markup.row(change_group)
-            markup.row(donate)
-            markup.row(my_class)
-            markup.row(notify)
-            markup.row(changes_in_schedule)
-            await bot.send_message(chat_id=message.chat.id, text='Профиль', reply_markup=markup)
-
-        if (message.text == 'Профиль' and group_id == 2):
-            markup = types.InlineKeyboardMarkup()
-            change_group = types.InlineKeyboardButton('Моя группа', callback_data='change_group')
-            donate = types.InlineKeyboardButton('Поддержать проект', callback_data='donate')
-            my_class = types.InlineKeyboardButton('Мой класс', callback_data='my_class')
-            changes_in_schedule = types.InlineKeyboardButton('Изменения в расписании', callback_data='changes_in_schedule')
-            notify = types.InlineKeyboardButton('Оповещения', callback_data='notify')
-            markup.row(change_group)
-            markup.row(donate)
-            markup.row(my_class)
-            markup.row(notify)
-            markup.row(changes_in_schedule)
-            await bot.send_message(chat_id=message.chat.id, text='Профиль', reply_markup=markup)
 
 async def add_user_to_group(id, group):
     cur.execute('UPDATE users SET group_id = {group} WHERE tg_id = "{id}"'.format(id=id, group=group))

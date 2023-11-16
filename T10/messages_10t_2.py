@@ -13,6 +13,7 @@ async def create_subjects():
     )''')
     main.db.commit()
 
+
 async def start_db_2():
     for i in range(1, 7):
         main.cur.execute('INSERT INTO subjects_10t_2 (subj_id, title, subjects, cabines) VALUES("{subj_id}", "{title}", "{subjects}", "{cabines}")'.format(subj_id=i, title=subjects['monday']['title'], subjects=subjects['monday']['subjects'][f'{i}'], cabines=subjects['monday']['cabines'][f'{i}']))
@@ -32,7 +33,6 @@ async def start_db_2():
     for i in range(1, 8):
         main.cur.execute('INSERT INTO subjects_10t_2 (subj_id, title, subjects, cabines) VALUES("{subj_id}", "{title}", "{subjects}", "{cabines}")'.format(subj_id=i, title=subjects['saturday']['title'], subjects=subjects['saturday']['subjects'][f'{i}'], cabines=subjects['saturday']['cabines'][f'{i}']))
         main.db.commit()
-
 
 async def add_subjects():
     subject_monday = main.cur.execute('SELECT title, subj_id FROM subjects_10t_2 WHERE title = "Понедельник"').fetchall()[-1]
@@ -288,6 +288,15 @@ thursday_second = (f'\n═────<b>{subjects_thursday_2[0][0]}</b>──�
                                                f'\n<b>5</b> |⌛️<i>11:40-12:20</i> {subjects_thursday_2[4][1]}  <b>{subjects_thursday_2[4][2]}</b>'
                                                f'\n<b>6</b> |⌛️<i>12:25-13:05</i> {subjects_thursday_2[5][1]}  <b>{subjects_thursday_2[5][2]}</b>'
                                                f'\n————————————————————')
+friday =  (f'\n═────<b>{subjects_friday_2[0][0]}</b>────═'
+                                               '\n————————————————————'
+                                               f'\n<b>1</b> |⌛️<i>08:00-08:40</i> {subjects_friday_2[0][1]}  <b>{subjects_friday_2[0][2]}</b>'
+                                               f'\n<b>2</b> |⌛️<i>08:50-09:30</i> {subjects_friday_2[1][1]}  <b>{subjects_friday_2[1][2]}</b>'
+                                               f'\n<b>3</b> |⌛️<i>09:40-10:20</i> {subjects_friday_2[2][1]}  <b>{subjects_friday_2[2][2]}</b>'
+                                               f'\n<b>4</b> |⌛️<i>10:40-11:20</i> {subjects_friday_2[3][1]}  <b>{subjects_friday_2[3][2]}</b>'
+                                               f'\n<b>5</b> |⌛️<i>11:40-12:20</i> {subjects_friday_2[4][1]}  <b>{subjects_friday_2[4][2]}</b>'
+                                               f'\n<b>6</b> |⌛️<i>12:25-13:05</i> {subjects_friday_2[5][1]}  <b>{subjects_friday_2[5][2]}</b>'
+                                               '\n————————————————————')
 saturday_second = (f'\n═────<b>{subjects_saturday_2[0][0]}</b>────═'
                                                f'\n————————————————————'
                                                f'\n<b>1</b> |⌛️<i>08:00-08:40</i> {subjects_saturday_2[0][1]}  <b>{subjects_saturday_2[0][2]}</b>'
