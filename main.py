@@ -1,3 +1,11 @@
+#            .oooooo..o   .oooooo.   ooooo   ooooo oooooooooooo oooooooooo.   ooooo     ooo ooooo        oooooooooooo      oooooooooo.    .oooooo.   ooooooooooooo 
+#            d8P'    `Y8  d8P'  `Y8b  `888'   `888' `888'     `8 `888'   `Y8b  `888'     `8' `888'        `888'     `8      `888'   `Y8b  d8P'  `Y8b  8'   888   `8 
+#            Y88bo.      888           888     888   888          888      888  888       8   888          888               888     888 888      888      888      
+#            `"Y8888o.  888           888ooooo888   888oooo8     888      888  888       8   888          888oooo8          888oooo888' 888      888      888      
+#                `"Y88b 888           888     888   888    "     888      888  888       8   888          888    "          888    `88b 888      888      888      
+#            oo     .d8P `88b    ooo   888     888   888       o  888     d88'  `88.    .8'   888       o  888       o       888    .88P `88b    d88'      888      
+#            8""88888P'   `Y8bood8P'  o888o   o888o o888ooooood8 o888bood8P'      `YbodP'    o888ooooood8 o888ooooood8      o888bood8P'   `Y8bood8P'      o888o                                                                                                                                  
+
 #                                                         Imports
 from aiogram import Dispatcher, Bot, types
 from aiogram.utils import executor
@@ -10,10 +18,11 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime
 from config import BOT_TOKEN, admin_id
 
-import T10.messages_10t_1 as msg_10t_1
-import T10.messages_10t_2 as msg_10t_2
-import keyboards as kb
-import T10.send_messages_10t as send_msg_10t
+import schedule_classes.T10.messages_10t_1 as msg_10t_1
+import schedule_classes.T10.messages_10t_2 as msg_10t_2
+import keyboards.keyboards as kb
+import schedule_classes.T10.send_messages_10t as send_msg_10t
+import database_start as db_start
 
 import sqlite3 as sql
 
@@ -23,33 +32,25 @@ db = sql.connect('database.db')
 cur = db.cursor()
 
 
-async def db_start():
-    cur.execute("""CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT,
-                tg_id INTEGER,
-                class_id TEXT DEFAULT '1',
-                group_id INTEGER DEFAULT 1,
-                isNotified INTEGER DEFAULT 0
-                )""")    
-    db.commit()
+storage = MemoryStorage()
+bot = Bot(token=BOT_TOKEN)
+dp = Dispatcher(bot, storage=storage)
 
 async def main():
     await send_message_cron()
 
 async def on_startup(_):
-    await db_start()
-    
-    # await msg_10t_1.create_subjects()
-    # await msg_10t_2.create_subjects()
-    # await msg_10t_1.start_db_1()
-    # await msg_10t_2.start_db_2()
+    await db_start.main_db_start()
 
-    await msg_10t_1.create_subjects()
+    # await db_start.create_subjects_1()
+    # await db_start.t10_db_start_1()
+    # await db_start.create_subjects_2()
+    # await db_start.t10_db_start_2()
+
+    await db_start.create_subjects_1()
     await msg_10t_1.add_subjects()
-    await msg_10t_2.create_subjects()
+    await db_start.create_subjects_2()
     await msg_10t_2.add_subjects()
-
 
     print('Database started!')
     print('Bot started!')
@@ -57,11 +58,6 @@ async def on_startup(_):
 class Form(StatesGroup):
     my_message = State()
     check_class = State()
-
-storage = MemoryStorage()
-bot = Bot(token=BOT_TOKEN)
-dp = Dispatcher(bot, storage=storage)
-
 
 # ---------------------------------------------------- Notifications ---------------------------------------------------
 # @dp.message_handler(commands=['webapp'])
@@ -86,7 +82,7 @@ async def notifications(message: types.Message):
     else:
         await bot.send_message(chat_id=message.chat.id, text="Данная функция работает только в личных сообщениях!")
 
-async def notify_db(id, isNotified):
+async def notify_db(id: int, isNotified: int):
     cur.execute('UPDATE users SET isNotified = "{isNotified}" WHERE tg_id = "{id}"'.format(isNotified=isNotified, id=id))
     db.commit()
 
@@ -202,7 +198,7 @@ async def group_selection(message: types.Message):
     markup.add(first_group, second_group)
     await bot.send_message(chat_id=message.from_user.id, text='Вы вошли в систему групп!\nВыберите свою группу для продолжения', reply_markup=markup)
 
-async def change_group_start(message):
+async def change_group_start(message: types.Message):
     markup = types.InlineKeyboardMarkup()
     first_group = types.InlineKeyboardButton('1', callback_data='first_group')
     second_group = types.InlineKeyboardButton('2', callback_data='second_group')
@@ -210,17 +206,13 @@ async def change_group_start(message):
     await bot.send_message(chat_id=message.from_user.id, text='Выбери свою группу', parse_mode='html', reply_markup=markup)
 
 async def start_schedule_first(message: types.Message):
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.add(kb.tommorow, kb.today, kb.days, kb.full, kb.uchitelya, kb.my_class, kb.comm, kb.donate, kb.profile)
     await bot.send_message(chat_id=message.chat.id,
-                           text='Хороош, теперь можешь пользоваться ботом! Твоя группа: <b>1</b>', reply_markup=markup,
+                           text='Хороош, теперь можешь пользоваться ботом! Твоя группа: <b>1</b>', reply_markup=kb.main,
                            parse_mode='html')
 
 async def start_schedule_second(message: types.Message):
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.add(kb.tommorow, kb.today, kb.days, kb.full, kb.uchitelya, kb.my_class, kb.comm, kb.donate, kb.profile)
     await bot.send_message(chat_id=message.chat.id,
-                           text='Хороош, теперь можешь пользоваться ботом! Твоя группа: <b>2</b>', reply_markup=markup,
+                           text='Хороош, теперь можешь пользоваться ботом! Твоя группа: <b>2</b>', reply_markup=kb.main,
                            parse_mode='html')
     
 async def donate(message: types.Message):
@@ -242,25 +234,30 @@ async def change_group(message: types.Message):
 async def my_class(message: types.Message):
     await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.cheliki, parse_mode='html')
 
-
 async def changes_in_schedule(message: types.Message):
     await bot.send_message(chat_id=message.chat.id, text='Пока изменений в расписании не обнаружено.',
                            parse_mode='html')
-
-
-
+                                                            # content_types=['text'])
 @dp.message_handler(content_types=['text'])
 async def func(message: types.Message):
+    preferred_message = ['/start', '/donate', '/notify', 'На завтра', 'На сегодня', 'По дням', 'Обратная связь', 'Донат', 'Полностью', 'Учителя', 'Мой класс', 'Профиль']
+    if message.chat.type == 'private' and message.text not in preferred_message:
+        await bot.send_message(chat_id=message.chat.id, text='Я тебя не понимаю, напиши /start')
+
     await send_msg_10t.messages_10t(message)
 
-
-
-async def add_user_to_group(id, group):
-    cur.execute('UPDATE users SET group_id = {group} WHERE tg_id = "{id}"'.format(id=id, group=group))
+async def add_user_to_group(id: int, group: int):
+    cur.execute('UPDATE users SET group_id = "{group}" WHERE tg_id = "{id}"'.format(id=id, group=int(group)))
     db.commit()
 
+async def proccess_unregister(id: int):
+    cur.execute('UPDATE users SET class_id = "" AND group_id = "0" WHERE tg_id = "{id}"'.format(id=id))
+    db.commit()
+
+                                                            # callbacks
 @dp.callback_query_handler()
 async def callback(call: types.CallbackQuery) -> None:
+    # profile
     if call.data == 'change_group':
         await change_group(call.message)
     elif call.data == 'change':
@@ -271,6 +268,10 @@ async def callback(call: types.CallbackQuery) -> None:
         await my_class(call.message)
     elif call.data == 'changes_in_schedule':
         await changes_in_schedule(call.message)
+    elif call.data == 'unregister':
+        await proccess_unregister(call.from_user.id)
+        await bot.send_message(chat_id=call.message.chat.id, text='<b>Вы успешно сбросили регистрацию!</b>\n\n<i>/start</i> - для начала работы бота', parse_mode='html')
+    # days
     elif call.data == 'monday_first':
         await call.message.reply(msg_10t_1.monday, parse_mode='html')
     elif call.data == 'monday_second':
@@ -296,6 +297,7 @@ async def callback(call: types.CallbackQuery) -> None:
     elif call.data == 'saturday_second':
         await call.message.reply(msg_10t_2.saturday_second, parse_mode='html')
 
+    # notifications    
     elif call.data == 'notify':
           markup = types.InlineKeyboardMarkup()
           on = types.InlineKeyboardButton('🔔 Включить оповещения', callback_data='on_notifications')
@@ -315,6 +317,7 @@ async def callback(call: types.CallbackQuery) -> None:
         await notify_db(call.from_user.id, 0)
         await off_notify(call.message)
 
+    # registration
     elif call.data == 'first_group':
         await add_user_to_group(call.from_user.id, 1)
         await start_schedule_first(call.message)
@@ -323,6 +326,7 @@ async def callback(call: types.CallbackQuery) -> None:
         await start_schedule_second(call.message)
     elif call.data == 'new_first_group' or call.data == 'new_second_group':
         await notifications(call.message)
+
 keep_alive()
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True, on_startup=on_startup)

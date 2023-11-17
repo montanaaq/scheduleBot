@@ -1,35 +1,6 @@
 import sqlite3 as sql
 import main
 
-async def create_subjects():
-    main.cur.execute('''CREATE TABLE IF NOT EXISTS subjects_10t_1 (
-        title TEXT NOT NULL,
-        subj_id INTEGER DEFAULT 0,
-        subjects TEXT NOT NULL,
-        cabines INTEGER NOT NULL
-    )''')
-    main.db.commit()
-
-async def start_db_1():
-    for i in range(1, 7):
-        main.cur.execute('INSERT INTO subjects_10t_1 (subj_id, title, subjects, cabines) VALUES("{subj_id}", "{title}", "{subjects}", "{cabines}")'.format(subj_id=i, title=subjects['monday']['title'], subjects=subjects['monday']['subjects'][f'{i}'], cabines=subjects['monday']['cabines'][f'{i}']))
-        main.db.commit()
-    for i in range(1, 7):
-        main.cur.execute('INSERT INTO subjects_10t_1 (subj_id, title, subjects, cabines) VALUES("{subj_id}", "{title}", "{subjects}", "{cabines}")'.format(subj_id=i, title=subjects['tuesday']['title'], subjects=subjects['tuesday']['subjects'][f'{i}'], cabines=subjects['tuesday']['cabines'][f'{i}']))
-        main.db.commit()
-    for i in range(1, 7):
-        main.cur.execute('INSERT INTO subjects_10t_1 (subj_id, title, subjects, cabines) VALUES("{subj_id}", "{title}", "{subjects}", "{cabines}")'.format(subj_id=i, title=subjects['wednesday']['title'], subjects=subjects['wednesday']['subjects'][f'{i}'], cabines=subjects['wednesday']['cabines'][f'{i}']))
-        main.db.commit()
-    for i in range(1, 7):
-        main.cur.execute('INSERT INTO subjects_10t_1 (subj_id, title, subjects, cabines) VALUES("{subj_id}", "{title}", "{subjects}", "{cabines}")'.format(subj_id=i, title=subjects['thursday']['title'], subjects=subjects['thursday']['subjects'][f'{i}'], cabines=subjects['thursday']['cabines'][f'{i}']))
-        main.db.commit()
-    for i in range(1, 7):
-        main.cur.execute('INSERT INTO subjects_10t_1 (subj_id, title, subjects, cabines) VALUES("{subj_id}", "{title}", "{subjects}", "{cabines}")'.format(subj_id=i, title=subjects['friday']['title'], subjects=subjects['friday']['subjects'][f'{i}'], cabines=subjects['friday']['cabines'][f'{i}']))
-        main.db.commit()
-    for i in range(1, 8):
-        main.cur.execute('INSERT INTO subjects_10t_1 (subj_id, title, subjects, cabines) VALUES("{subj_id}", "{title}", "{subjects}", "{cabines}")'.format(subj_id=i, title=subjects['saturday']['title'], subjects=subjects['saturday']['subjects'][f'{i}'], cabines=subjects['saturday']['cabines'][f'{i}']))
-        main.db.commit()
-
 async def add_subjects():
     subject_monday = main.cur.execute('SELECT title, subj_id FROM subjects_10t_1 WHERE title = "Понедельник"').fetchall()[-1]
     if subject_monday[0] == 'Понедельник' and subject_monday[1] != 6:

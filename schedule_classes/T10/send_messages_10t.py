@@ -1,10 +1,10 @@
 from aiogram import types
 
 import main
-import T10.messages_10t_1 as msg_10t_1
-import T10.messages_10t_2 as msg_10t_2
+import schedule_classes.T10.messages_10t_1 as msg_10t_1
+import schedule_classes.T10.messages_10t_2 as msg_10t_2
 from datetime import datetime
-import keyboards as kb
+import keyboards.keyboards as kb
 
 async def messages_10t(message: types.Message):
         group_id = main.cur.execute('SELECT group_id FROM users WHERE tg_id ="{user_id}"'.format(user_id=message.from_user.id)).fetchone()[0]
@@ -63,6 +63,7 @@ async def messages_10t(message: types.Message):
                 await main.bot.send_message(chat_id=message.from_user.id, text=msg_10t_2.monday, parse_mode='html')
             if (datetime.now().weekday() + 1 == 6):
                 await main.bot.send_message(chat_id=message.from_user.id, text='Завтра выходной!')
+
         if (message.text == 'На сегодня' and group_id == 1 and class_id == '10Т'):
             if (datetime.now().weekday() == 0):
                 await main.bot.send_message(chat_id=message.from_user.id, text=msg_10t_1.monday, parse_mode='html')
@@ -78,6 +79,7 @@ async def messages_10t(message: types.Message):
                 await main.bot.send_message(chat_id=message.from_user.id, text=msg_10t_1.saturday_first, parse_mode='html')
             if (datetime.now().weekday() == 6):
                 await main.bot.send_message(chat_id=message.from_user.id, text='Сегодня выходной!')
+
         if (message.text == 'На сегодня' and group_id == 2 and class_id == '10Т'):
             if (datetime.now().weekday() == 0):
                 await main.bot.send_message(chat_id=message.from_user.id, text=msg_10t_2.monday, parse_mode='html')
@@ -115,4 +117,5 @@ async def messages_10t(message: types.Message):
             markup.row(kb.my_class)
             markup.row(kb.notify)
             markup.row(kb.changes_in_schedule)
+            markup.row(kb.unregister)
             await main.bot.send_message(chat_id=message.from_user.id, text='Профиль', reply_markup=markup)
