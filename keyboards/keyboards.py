@@ -29,9 +29,12 @@ days_second = InlineKeyboardMarkup().add(
     InlineKeyboardButton('Суббота', callback_data='saturday_second'),
 )
 
-change_group = InlineKeyboardButton('Моя группа', callback_data='change_group')
+change_group = InlineKeyboardButton('Изменить группу', callback_data='change_group')
 donate = InlineKeyboardButton('Поддержать проект', callback_data='donate')
 my_class = InlineKeyboardButton('Мой класс', callback_data='my_class')
 changes_in_schedule = InlineKeyboardButton('Изменения в расписании', callback_data='changes_in_schedule')
 notify = InlineKeyboardButton('Оповещения', callback_data='notify')
 unregister = InlineKeyboardButton('Сбросить регистрацию', callback_data='unregister')
+
+on = types.InlineKeyboardButton('🔔 Включить оповещения', callback_data='on_notifications')
+off = types.InlineKeyboardButton('🔕 Выключить оповещения', callback_data='off_notifications')

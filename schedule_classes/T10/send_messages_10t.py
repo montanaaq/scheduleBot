@@ -111,7 +111,7 @@ async def messages_10t(message: types.Message):
                                 text='Писать только по работе бота, если нашли баг, без лишнего и спама. Чтобы связаться с разработчиком нажмите на кнопку ниже', reply_markup=markup)
             
         if (message.text == 'Профиль' and class_id == '10Т'):
-            markup = types.InlineKeyboardMarkup()
+            markup = types.InlineKeyboardMarkup(resize_keyboard = True)
             markup.row(kb.change_group)
             markup.row(kb.donate)
             markup.row(kb.my_class)

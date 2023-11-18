@@ -71,10 +71,8 @@ class Form(StatesGroup):
 @dp.message_handler(commands=['notify'])
 async def notifications(message: types.Message):
     markup = types.InlineKeyboardMarkup()
-    on = types.InlineKeyboardButton('🔔 Включить оповещения', callback_data='on_notifications')
-    off = types.InlineKeyboardButton('🔕 Выключить оповещения', callback_data='off_notifications')
-    markup.add(on)
-    markup.add(off)
+    markup.add(kb.on)
+    markup.add(kb.off)
     if message.from_user.id == message.chat.id:
         await bot.send_message(chat_id=message.chat.id,
                            text='Чтобы включить или выключить оповещения от бота, нажмите на кнопки ниже.',
@@ -185,7 +183,8 @@ async def complete_class(message: types.Message):
     classes = ['10Т']
     if (isinstance(message.text, str) and 2 <= len(message.text) <= 3 and message.text.upper() in classes):
         await set_class(message.from_user.id, message.text.upper())
-        await bot.send_message(chat_id=message.from_user.id, text=f'Успешно! Ваш класс: <b>{message.text}</b>', parse_mode='html')
+        await bot.send_message(chat_id=message.from_user.id, text=f'✅ Успешно! Ваш класс: <b>{message.text}</b>', parse_mode='html')
+        time.sleep(2)
         await group_selection(message)
     else:
         await bot.send_message(chat_id=message.chat.id, text='Ошибка! Введите корректный класс: ')
