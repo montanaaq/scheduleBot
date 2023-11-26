@@ -15,6 +15,7 @@ from aiogram.dispatcher import FSMContext
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
+import time
 from datetime import datetime
 from config import BOT_TOKEN, admin_id
 
@@ -26,11 +27,10 @@ import database_start as db_start
 
 import sqlite3 as sql
 
-from background import keep_alive
+# from background import keep_alive
 
 db = sql.connect('database.db')
 cur = db.cursor()
-
 
 storage = MemoryStorage()
 bot = Bot(token=BOT_TOKEN)
@@ -70,15 +70,19 @@ class Form(StatesGroup):
 
 @dp.message_handler(commands=['notify'])
 async def notifications(message: types.Message):
-    markup = types.InlineKeyboardMarkup()
-    markup.add(kb.on)
-    markup.add(kb.off)
-    if message.from_user.id == message.chat.id:
-        await bot.send_message(chat_id=message.chat.id,
-                           text='Чтобы включить или выключить оповещения от бота, нажмите на кнопки ниже.',
-                           reply_markup=markup)
+    isNotified = cur.execute('SELECT tg_id FROM users WHERE tg_id = "{id}" AND class_id != ""'.format(id=message.from_user.id)).fetchone()
+    if message.from_user.id in isNotified:
+        markup = types.InlineKeyboardMarkup()
+        markup.add(kb.on)
+        markup.add(kb.off)
+        if message.from_user.id == message.chat.id:
+            await bot.send_message(chat_id=message.chat.id,
+                            text='Чтобы включить или выключить оповещения от бота, нажмите на кнопки ниже.',
+                            reply_markup=markup)
+        else:
+            await bot.send_message(chat_id=message.chat.id, text="Данная функция работает только в личных сообщениях!")
     else:
-        await bot.send_message(chat_id=message.chat.id, text="Данная функция работает только в личных сообщениях!")
+        await bot.send_message(chat_id=message.from_user.id, text='Вы не можете включить уведомления без регистрации!', reply_markup=kb.register)
 
 async def notify_db(id: int, isNotified: int):
     cur.execute('UPDATE users SET isNotified = "{isNotified}" WHERE tg_id = "{id}"'.format(isNotified=isNotified, id=id))
@@ -88,7 +92,6 @@ async def on_notify(message: types.Message):
     await bot.send_message(chat_id=message.chat.id,
                            text='✅ Успешно! Оповещения о расписании <i>включены</i>. <b>Они будут отправляться автоматически каждый день [Понедельник-Суббота] в 7:45.</b>',
                            parse_mode='html')
-
 
 async def off_notify(message: types.Message):
     await bot.send_message(chat_id=message.chat.id,
@@ -159,11 +162,150 @@ async def cmd_start_db(id: int, username: str):
 
 @dp.message_handler(commands=["start"])
 async def start_command(message: types.Message):
-        await cmd_start_db(message.from_user.id, f'@{message.from_user.username}')
-        await select_class(message)
+        user = cur.execute('SELECT tg_id FROM users WHERE tg_id = "{id}" AND class_id != 0'.format(id=message.from_user.id)).fetchone()
+        if not user:
+            await cmd_start_db(message.from_user.id, f'@{message.from_user.username}')
+            await select_class(message)
+        else:
+            await bot.send_message(chat_id=message.from_user.id, text='Я тебя не понимаю...')
+
+@dp.message_handler(commands=['edit'])
+async def edit_panel(message: types.Message):
+    if message.from_user.id in admin_id:
+        await bot.send_message(chat_id=message.from_user.id, text=f'Привет <b>{message.from_user.username},</b> здесь ты можешь редактировать расписание всех классов', parse_mode='html', reply_markup=kb.start_edit)
+    else:
+        await bot.send_message(chat_id=message.from_user.id, text='У вас нет прав!')
+
+async def edit_class(message: types.Message):
+    await bot.send_message(chat_id=message.chat.id, text='Выбери класс для редактирования', reply_markup=kb.classes)
+
+async def edit_classes(call: types.CallbackQuery):
+    global choosen_class
+    if call.data == 'edit_10t':
+        choosen_class = '10Т'
+        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        await select_edit_group(call.message)
+
+async def select_edit_group(message: types.Message):
+    await bot.send_message(chat_id=message.chat.id, text='Выбери группы для которой нужно изменить расписание', reply_markup=kb.select_group)
+
+async def select_edit_group_callback(call: types.CallbackQuery):
+    global choosen_group
+    if call.data == 'edit_first_group':
+        choosen_group = 1
+        await bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
+        await select_edit_weekday(call.message)
+    if call.data == 'edit_second_group':
+        choosen_group = 2
+        await bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
+        await select_edit_weekday(call.message)
+        
+async def select_edit_weekday(message: types.Message):
+    await bot.send_message(chat_id=message.chat.id, text='Выбери день недели, который вы хотите отредактировать', reply_markup=kb.weekdays)
+
+async def select_weekday(call: types.CallbackQuery):
+    global choosen_weekday
+    if call.data == 'edit_monday':
+        choosen_weekday = 'Понедельник'
+        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        await accept_data(call.message)
+    elif call.data == 'edit_tuesday':
+        choosen_weekday = 'Вторник'
+        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        await accept_data(call.message)
+    elif call.data == 'edit_wednesday':
+        choosen_weekday = 'Среда'
+        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        await accept_data(call.message)
+    elif call.data == 'edit_thursday':
+        choosen_weekday = 'Четверг'
+        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        await accept_data(call.message)
+    elif call.data == 'edit_friday':
+        choosen_weekday = 'Пятница'
+        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        await accept_data(call.message)
+    elif call.data == 'edit_saturday':
+        choosen_weekday = 'Суббота'
+        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        await accept_data(call.message)
+
+class AcceptData(StatesGroup):
+    data = State()
+
+async def accept_data(message: types.Message):
+    await bot.send_message(chat_id=message.chat.id, text='Напишите как в примере\n\n<b>Номер урока, название предмета, кабинет</b>\n\nЗапятые обязательны', parse_mode='html')
+    await AcceptData.data.set()
+
+@dp.message_handler(state=AcceptData.data)
+async def proccess_accept_data(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['data'] = message.text
+    await AcceptData.next()
+    await check_data(message)
+
+async def check_data(message: types.Message):
+    global choosen_class
+    global choosen_group
+    global choosen_weekday
+
+    sended_message = (message.text).split(', ')
+    subjects = [
+        'Математика',
+        'Русс.яз',
+        'Общество',
+        'ОБЖ',
+        'История',
+        'Англ.яз',
+        'Франц.яз',
+        'Информатика',
+        'Литер',
+        'Эл.физика',
+        'Физ-ра',
+        'Геометрия',
+        'Алгебра',
+        'Вероятность',
+        'Химия',
+        'Физика',
+        'Биология',
+        'География',
+        'Родн.яз',
+        ]
+    if len(sended_message) < 3:
+        await bot.send_message(chat_id=message.from_user.id, text='Неверный формат данных! Попробуйте ещё раз')
+        await AcceptData.data.set()
+    else:
+        number_of_lesson = sended_message[0]
+        name_of_subject = sended_message[1]
+        cabinet_name = sended_message[2]
+        if len(sended_message) > 3 and not name_of_subject in subjects and 0 < number_of_lesson <= 9:
+            await bot.send_message(chat_id=message.from_user.id, text='Неверный формат данных! Попробуйте ещё раз')
+            await AcceptData.data.set()
+        else:
+            await bot.send_message(chat_id=message.from_user.id, text='Успешно!')
+            await set_data(choosen_class, choosen_group, choosen_weekday, number_of_lesson, name_of_subject, cabinet_name)
+
+async def set_data(class_name, group, title, subj_id, subject, cabine):
+    if class_name == '10Т' and group == 1:
+        cur.execute('UPDATE subjects_10t_1 SET subjects = "{subject}" WHERE title = "{title}" AND subj_id = "{subj_id}"'.format(
+            subject=subject, title=title, subj_id=subj_id
+        ))
+        cur.execute('UPDATE subjects_10t_1 SET cabines = "{cabine}" WHERE title = "{title}" AND subj_id = "{subj_id}"'.format(
+            cabine=cabine, title=title, subj_id=subj_id
+        ))
+        db.commit()
+    elif class_name == '10Т' and group == 2:
+        cur.execute('UPDATE subjects_10t_2 SET subjects = "{subject}" WHERE title = "{title}" AND subj_id = "{subj_id}"'.format(
+            subject=subject, cabine=cabine, title=title, subj_id=subj_id
+        ))
+        cur.execute('UPDATE subjects_10t_2 SET cabines = "{cabine}" WHERE title = "{title}" AND subj_id = "{subj_id}"'.format(
+            cabine=cabine, title=title, subj_id=subj_id
+        ))
+        db.commit()
 
 async def select_class(message: types.Message):
-    await bot.send_message(chat_id=message.chat.id, text="Привет ты запустил бота! Теперь напиши свой класс: ")
+    global class_id
+    class_id = await bot.send_message(chat_id=message.chat.id, text="Привет ты запустил бота! Теперь напиши свой класс: ")
     await Class_id.wait_for_class.set()
 
 class Class_id(StatesGroup):
@@ -179,12 +321,15 @@ async def proccess_select_class(message: types.Message, state: FSMContext):
 async def set_class(id: int, class_id: str):
     cur.execute('UPDATE users SET class_id = "{class_name}" WHERE tg_id = "{id}"'.format(class_name=class_id, id=id))
 
+
 async def complete_class(message: types.Message):
+    global class_id
     classes = ['10Т']
     if (isinstance(message.text, str) and 2 <= len(message.text) <= 3 and message.text.upper() in classes):
         await set_class(message.from_user.id, message.text.upper())
+        await bot.delete_message(chat_id=message.chat.id, message_id=class_id.message_id)
         await bot.send_message(chat_id=message.from_user.id, text=f'✅ Успешно! Ваш класс: <b>{message.text}</b>', parse_mode='html')
-        time.sleep(2)
+        time.sleep(1)
         await group_selection(message)
     else:
         await bot.send_message(chat_id=message.chat.id, text='Ошибка! Введите корректный класс: ')
@@ -202,7 +347,7 @@ async def change_group_start(message: types.Message):
     first_group = types.InlineKeyboardButton('1', callback_data='first_group')
     second_group = types.InlineKeyboardButton('2', callback_data='second_group')
     markup.add(first_group, second_group)
-    await bot.send_message(chat_id=message.from_user.id, text='Выбери свою группу', parse_mode='html', reply_markup=markup)
+    await bot.send_message(chat_id=message.chat.id, text='Выбери свою группу', parse_mode='html', reply_markup=markup)
 
 async def start_schedule_first(message: types.Message):
     await bot.send_message(chat_id=message.chat.id,
@@ -241,7 +386,7 @@ async def changes_in_schedule(message: types.Message):
 async def func(message: types.Message):
     preferred_message = ['/start', '/donate', '/notify', 'На завтра', 'На сегодня', 'По дням', 'Обратная связь', 'Донат', 'Полностью', 'Учителя', 'Мой класс', 'Профиль']
     if message.chat.type == 'private' and message.text not in preferred_message:
-        await bot.send_message(chat_id=message.chat.id, text='Я тебя не понимаю, напиши /start')
+        await bot.send_message(chat_id=message.chat.id, text='Я тебя не понимаю...')
 
     await send_msg_10t.messages_10t(message)
 
@@ -258,55 +403,74 @@ async def proccess_unregister(id: int):
 async def callback(call: types.CallbackQuery) -> None:
     # profile
     if call.data == 'change_group':
+        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
         await change_group(call.message)
     elif call.data == 'change':
+        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
         await change_group_start(call.message)
     elif call.data == 'donate':
+        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
         await donate(call.message)
     elif call.data == 'my_class':
+        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
         await my_class(call.message)
     elif call.data == 'changes_in_schedule':
+        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
         await changes_in_schedule(call.message)
     elif call.data == 'unregister':
+        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
         await proccess_unregister(call.from_user.id)
         await bot.send_message(chat_id=call.message.chat.id, text='<b>Вы успешно сбросили регистрацию!</b>\n\n<i>/start</i> - для начала работы бота', parse_mode='html')
     # days
     elif call.data == 'monday_first':
-        await call.message.reply(msg_10t_1.monday, parse_mode='html')
+        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        await bot.send_message(chat_id=call.message.chat.id, text=msg_10t_1.monday, parse_mode='html', reply_markup=kb.days_first)
     elif call.data == 'monday_second':
-        await call.message.reply(msg_10t_2.monday, parse_mode='html')
+        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        await bot.send_message(chat_id=call.message.chat.id, text=msg_10t_2.monday, parse_mode='html', reply_markup=kb.days_second)
     elif call.data == 'tuesday_first':
-        await call.message.reply(msg_10t_1.tuesday_first, parse_mode='html')
+        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        await bot.send_message(chat_id=call.message.chat.id, text=msg_10t_1.tuesday_first, parse_mode='html', reply_markup=kb.days_first)
     elif call.data == 'tuesday_second':
-        await call.message.reply(msg_10t_2.tuesday_second, parse_mode='html')
+        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        await bot.send_message(chat_id=call.message.chat.id, text=msg_10t_2.tuesday_second, parse_mode='html', reply_markup=kb.days_second)
     elif call.data == 'wednesday_first':
-        await call.message.reply(msg_10t_1.wednesday_first, parse_mode='html')
+        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        await bot.send_message(chat_id=call.message.chat.id, text=msg_10t_1.wednesday_first, parse_mode='html', reply_markup=kb.days_first)
     elif call.data == 'wednesday_second':
-        await call.message.reply(msg_10t_2.wednesday_second, parse_mode='html')
+        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        await bot.send_message(chat_id=call.message.chat.id, text=msg_10t_2.wednesday_second, parse_mode='html', reply_markup=kb.days_second)
     elif call.data == 'thursday_first':
-        await call.message.reply(msg_10t_1.thursday_first, parse_mode='html')
+        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        await bot.send_message(chat_id=call.message.chat.id, text=msg_10t_1.thursday_first, parse_mode='html', reply_markup=kb.days_first)
     elif call.data == 'thursday_second':
-        await call.message.reply(msg_10t_2.thursday_second, parse_mode='html')
+        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        await bot.send_message(chat_id=call.message.chat.id, text=msg_10t_2.thursday_second, parse_mode='html', reply_markup=kb.days_second)
     elif call.data == 'friday_first':
-        await call.message.reply(msg_10t_1.friday, parse_mode='html')
+        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        await bot.send_message(chat_id=call.message.chat.id, text=msg_10t_1.friday, parse_mode='html', reply_markup=kb.days_first)
     elif call.data == 'friday_second':
-        await call.message.reply(msg_10t_2.friday, parse_mode='html')
+        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        await bot.send_message(chat_id=call.message.chat.id, text=msg_10t_2.friday, parse_mode='html', reply_markup=kb.days_second)
     elif call.data == 'saturday_first':
-        await call.message.reply(msg_10t_1.saturday_first, parse_mode='html')
+        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        await bot.send_message(chat_id=call.message.chat.id, text=msg_10t_1.saturday_first, parse_mode='html', reply_markup=kb.days_first)
     elif call.data == 'saturday_second':
-        await call.message.reply(msg_10t_2.saturday_second, parse_mode='html')
+        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        await bot.send_message(chat_id=call.message.chat.id, text=msg_10t_2.saturday_second, parse_mode='html', reply_markup=kb.days_second)
 
     # notifications    
+
+    elif call.data == 'register':
+        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        await start_command(call.message)
+
     elif call.data == 'notify':
-          markup = types.InlineKeyboardMarkup()
-          on = types.InlineKeyboardButton('🔔 Включить оповещения', callback_data='on_notifications')
-          off = types.InlineKeyboardButton('🔕 Выключить оповещения', callback_data='off_notifications')
-          markup.add(on)
-          markup.add(off)
+          await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
           if call.from_user.id == call.message.chat.id:
               await bot.send_message(chat_id=call.message.chat.id,
                                  text='Чтобы включить или выключить оповещения от бота, нажмите на кнопки ниже.',
-                                 reply_markup=markup)
+                                 reply_markup=kb.notify_keyboard)
           else:
               await bot.send_message(chat_id=call.message.chat.id, text="Данная функция работает только в личных сообщениях!")
     elif call.data == 'on_notifications':
@@ -319,13 +483,23 @@ async def callback(call: types.CallbackQuery) -> None:
     # registration
     elif call.data == 'first_group':
         await add_user_to_group(call.from_user.id, 1)
+        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
         await start_schedule_first(call.message)
     elif call.data == 'second_group':
         await add_user_to_group(call.from_user.id, 2)
+        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
         await start_schedule_second(call.message)
     elif call.data == 'new_first_group' or call.data == 'new_second_group':
         await notifications(call.message)
 
-keep_alive()
+    # edit
+    elif call.data == 'start_editing':
+        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        await edit_class(call.message)
+    await edit_classes(call)
+    await select_edit_group_callback(call)
+    await select_weekday(call)
+
+# keep_alive()
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True, on_startup=on_startup)

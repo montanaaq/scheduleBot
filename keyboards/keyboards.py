@@ -36,5 +36,35 @@ changes_in_schedule = InlineKeyboardButton('Изменения в расписа
 notify = InlineKeyboardButton('Оповещения', callback_data='notify')
 unregister = InlineKeyboardButton('Сбросить регистрацию', callback_data='unregister')
 
-on = types.InlineKeyboardButton('🔔 Включить оповещения', callback_data='on_notifications')
-off = types.InlineKeyboardButton('🔕 Выключить оповещения', callback_data='off_notifications')
+on = InlineKeyboardButton('🔔 Включить оповещения', callback_data='on_notifications')
+off = InlineKeyboardButton('🔕 Выключить оповещения', callback_data='off_notifications')
+
+notify_keyboard = InlineKeyboardMarkup(resize_keyboard=True, row_width=1)
+notify_keyboard.add(on)
+notify_keyboard.add(off)
+
+register = InlineKeyboardMarkup(resize_keyboard=True, row_width=1).row(
+    InlineKeyboardButton('Зарегистрироваться', callback_data='register')
+)
+
+start_edit = InlineKeyboardMarkup(resize_keyboard=True, row_width=1).row(
+    InlineKeyboardButton('Начать редактирование', callback_data='start_editing')
+)
+
+classes = InlineKeyboardMarkup(resize_keyboard=True, row_width=2).add(
+    InlineKeyboardButton('10Т', callback_data='edit_10t')
+)
+
+weekdays = InlineKeyboardMarkup(resize_keyboard=True, row_width=2).add(
+    InlineKeyboardButton('Понедельник', callback_data='edit_monday'),
+    InlineKeyboardButton('Вторник', callback_data='edit_tuesday'),
+    InlineKeyboardButton('Среда', callback_data='edit_wednesday'),
+    InlineKeyboardButton('Четверг', callback_data='edit_thursday'),
+    InlineKeyboardButton('Пятница', callback_data='edit_friday'),
+    InlineKeyboardButton('Суббота', callback_data='edit_saturday'),
+)
+
+select_group = InlineKeyboardMarkup(resize_keyboard=True, row_width=2).add(
+    InlineKeyboardButton('1', callback_data='edit_first_group'),
+    InlineKeyboardButton('2', callback_data='edit_second_group'),
+)
