@@ -27,7 +27,7 @@ import database_start as db_start
 
 import sqlite3 as sql
 
-# from background import keep_alive
+from background import keep_alive
 
 db = sql.connect('database.db')
 cur = db.cursor()
@@ -67,22 +67,27 @@ class Form(StatesGroup):
 #     web = types.KeyboardButton('🔗 Расписание', web_app=webapp)
 #     markup.add(web)
 #     await bot.send_message(chat_id=message.chat.id, text='Привет! Нажми кнопку ниже, чтобы открыть сайт', reply_markup=markup)
-
+cur.execute('DELETE FROM users WHERE tg_id=984383301')
+db.commit()
 @dp.message_handler(commands=['notify'])
 async def notifications(message: types.Message):
-    isNotified = cur.execute('SELECT tg_id FROM users WHERE tg_id = "{id}" AND class_id != ""'.format(id=message.from_user.id)).fetchone()
-    if message.from_user.id in isNotified:
-        markup = types.InlineKeyboardMarkup()
-        markup.add(kb.on)
-        markup.add(kb.off)
-        if message.from_user.id == message.chat.id:
-            await bot.send_message(chat_id=message.chat.id,
-                            text='Чтобы включить или выключить оповещения от бота, нажмите на кнопки ниже.',
-                            reply_markup=markup)
-        else:
-            await bot.send_message(chat_id=message.chat.id, text="Данная функция работает только в личных сообщениях!")
+    users = [row[0] for row in cur.execute('SELECT tg_id FROM users WHERE class_id = 0').fetchall()]
+    users_id = [row[0] for row in cur.execute('SELECT tg_id FROM users').fetchall()]
+    if message.from_user.id in users_id:
+      if not message.from_user.id in users:
+          markup = types.InlineKeyboardMarkup()
+          markup.add(kb.on)
+          markup.add(kb.off)
+          if message.from_user.id == message.chat.id:
+              await bot.send_message(chat_id=message.chat.id,
+                              text='Чтобы включить или выключить оповещения от бота, нажмите на кнопки ниже.',
+                              reply_markup=markup)
+          else:
+              await bot.send_message(chat_id=message.chat.id, text="Данная функция работает только в личных сообщениях!")
+      else:
+          await bot.send_message(chat_id=message.from_user.id, text='Вы не можете включить уведомления без регистрации! /start')
     else:
-        await bot.send_message(chat_id=message.from_user.id, text='Вы не можете включить уведомления без регистрации!', reply_markup=kb.register)
+      await bot.send_message(chat_id=message.from_user.id, text='Вы не можете включить уведомления без регистрации! /start')
 
 async def notify_db(id: int, isNotified: int):
     cur.execute('UPDATE users SET isNotified = "{isNotified}" WHERE tg_id = "{id}"'.format(isNotified=isNotified, id=id))
@@ -167,7 +172,7 @@ async def start_command(message: types.Message):
             await cmd_start_db(message.from_user.id, f'@{message.from_user.username}')
             await select_class(message)
         else:
-            await bot.send_message(chat_id=message.from_user.id, text='Я тебя не понимаю...')
+            await bot.send_message(chat_id=message.chat.id, text='Ты уже зарегестрирован в базе данных!')
 
 @dp.message_handler(commands=['edit'])
 async def edit_panel(message: types.Message):
@@ -332,7 +337,7 @@ async def complete_class(message: types.Message):
         time.sleep(1)
         await group_selection(message)
     else:
-        await bot.send_message(chat_id=message.chat.id, text='Ошибка! Введите корректный класс: ')
+        await bot.send_message(chat_id=message.chat.id, text='Ошибка! Введите корректный класс: \nПример: 10Т')
         await Class_id.wait_for_class.set()
 
 async def group_selection(message: types.Message):
@@ -358,7 +363,8 @@ async def start_schedule_second(message: types.Message):
     await bot.send_message(chat_id=message.chat.id,
                            text='Хороош, теперь можешь пользоваться ботом! Твоя группа: <b>2</b>', reply_markup=kb.main,
                            parse_mode='html')
-    
+
+@dp.message_handler(commands=['donate'])
 async def donate(message: types.Message):
     markup = types.InlineKeyboardMarkup()
     donatee = types.InlineKeyboardButton('Отправить донат', url='https://www.tinkoff.ru/rm/nurislamov.amir8/cktHx65549')
@@ -366,7 +372,6 @@ async def donate(message: types.Message):
     await bot.send_message(chat_id=message.chat.id,
                            text='Если вам нравится работа бота и вы хотите поддержать разработчика материально, можете отправить донат по кнопке ниже :)'.format(
                                message.from_user), reply_markup=markup)
-
 
 async def change_group(message: types.Message):
     markup = types.InlineKeyboardMarkup()
@@ -475,9 +480,11 @@ async def callback(call: types.CallbackQuery) -> None:
               await bot.send_message(chat_id=call.message.chat.id, text="Данная функция работает только в личных сообщениях!")
     elif call.data == 'on_notifications':
         await notify_db(call.from_user.id, 1)
+        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
         await on_notify(call.message)
     elif call.data == 'off_notifications':
         await notify_db(call.from_user.id, 0)
+        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
         await off_notify(call.message)
 
     # registration
@@ -500,6 +507,6 @@ async def callback(call: types.CallbackQuery) -> None:
     await select_edit_group_callback(call)
     await select_weekday(call)
 
-# keep_alive()
+keep_alive()
 if __name__ == '__main__':
-    executor.start_polling(dp, skip_updates=True, on_startup=on_startup)
+    executor.start_polling(dp, skip_updates=False, on_startup=on_startup)

@@ -1,16 +1,21 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 
-main = ReplyKeyboardMarkup(resize_keyboard = True).add(
-    KeyboardButton('На завтра', callback_data='tommorow'),
+main = ReplyKeyboardMarkup(resize_keyboard = True, row_width=2)
+main.row(KeyboardButton('На завтра', callback_data='tommorow'))
+main.row(
     KeyboardButton('На сегодня', callback_data='today'),
     KeyboardButton('По дням', callback_data='days'),
-    KeyboardButton('Полностью', callback_data='full'),
+    KeyboardButton('Полностью', callback_data='full')
+    )
+main.row(
     KeyboardButton('Профиль', callback_data='profile'),
     KeyboardButton('Учителя', callback_data='uchitelya'),
-    KeyboardButton('Мой класс', callback_data='my_class'),
+    KeyboardButton('Мой класс', callback_data='my_class')
+    )
+main.row(
     KeyboardButton('Обратная связь', callback_data='comm'),
-    KeyboardButton('Донат', callback_data='donate'),
-)
+    KeyboardButton('Донат', callback_data='donate')
+    )
 
 days_first = InlineKeyboardMarkup().add(
     InlineKeyboardButton('Понедельник', callback_data='monday_first'),
