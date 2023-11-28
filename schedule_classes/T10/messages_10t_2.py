@@ -1,7 +1,7 @@
 import sqlite3 as sql
 
-db = sql.connect('database.db')
-cur = db.cursor()
+db_sub = sql.connect('database/subjects.db')
+cur_sub = db_sub.cursor()
 
 subjects = {
     'monday': {
@@ -127,12 +127,12 @@ subjects = {
 }
 
 async def return_schedule(schedule):
-    monday = cur.execute('SELECT title, subjects, cabines FROM subjects_10t_2 WHERE title="Понедельник"').fetchall()
-    tuesday = cur.execute('SELECT title, subjects, cabines FROM subjects_10t_2 WHERE title="Вторник"').fetchall()
-    wednesday = cur.execute('SELECT title, subjects, cabines FROM subjects_10t_2 WHERE title="Среда"').fetchall()
-    thursday = cur.execute('SELECT title, subjects, cabines FROM subjects_10t_2 WHERE title="Четверг"').fetchall()
-    friday = cur.execute('SELECT title, subjects, cabines FROM subjects_10t_2 WHERE title="Пятница"').fetchall()
-    saturday = cur.execute('SELECT title, subjects, cabines FROM subjects_10t_2 WHERE title="Суббота"').fetchall()
+    monday = cur_sub.execute('SELECT title, subjects, cabines FROM subjects_10t_2 WHERE title="Понедельник"').fetchall()
+    tuesday = cur_sub.execute('SELECT title, subjects, cabines FROM subjects_10t_2 WHERE title="Вторник"').fetchall()
+    wednesday = cur_sub.execute('SELECT title, subjects, cabines FROM subjects_10t_2 WHERE title="Среда"').fetchall()
+    thursday = cur_sub.execute('SELECT title, subjects, cabines FROM subjects_10t_2 WHERE title="Четверг"').fetchall()
+    friday = cur_sub.execute('SELECT title, subjects, cabines FROM subjects_10t_2 WHERE title="Пятница"').fetchall()
+    saturday = cur_sub.execute('SELECT title, subjects, cabines FROM subjects_10t_2 WHERE title="Суббота"').fetchall()
     if schedule == 'full':
         full_schedule_second = (                         f'═────<b>{monday[0][0]}</b>────═'
                                                     '\n————————————————————'

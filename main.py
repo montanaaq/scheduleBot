@@ -29,8 +29,11 @@ import sqlite3 as sql
 
 from background import keep_alive
 
-db = sql.connect('database.db')
+db = sql.connect('database/database.db')
 cur = db.cursor()
+
+db_sub = sql.connect('database/subjects.db')
+cur_sub = db_sub.cursor()
 
 storage = MemoryStorage()
 bot = Bot(token=BOT_TOKEN)
@@ -286,21 +289,21 @@ async def check_data(message: types.Message):
 
 async def set_data(class_name, group, title, subj_id, subject, cabine):
     if class_name == '10Т' and group == 1:
-        cur.execute('UPDATE subjects_10t_1 SET subjects = "{subject}" WHERE title = "{title}" AND subj_id = "{subj_id}"'.format(
+        cur_sub.execute('UPDATE subjects_10t_1 SET subjects = "{subject}" WHERE title = "{title}" AND subj_id = "{subj_id}"'.format(
             subject=subject, title=title, subj_id=subj_id
         ))
-        cur.execute('UPDATE subjects_10t_1 SET cabines = "{cabine}" WHERE title = "{title}" AND subj_id = "{subj_id}"'.format(
+        cur_sub.execute('UPDATE subjects_10t_1 SET cabines = "{cabine}" WHERE title = "{title}" AND subj_id = "{subj_id}"'.format(
             cabine=cabine, title=title, subj_id=subj_id
         ))
-        db.commit()
+        db_sub.commit()
     elif class_name == '10Т' and group == 2:
-        cur.execute('UPDATE subjects_10t_2 SET subjects = "{subject}" WHERE title = "{title}" AND subj_id = "{subj_id}"'.format(
+        cur_sub.execute('UPDATE subjects_10t_2 SET subjects = "{subject}" WHERE title = "{title}" AND subj_id = "{subj_id}"'.format(
             subject=subject, cabine=cabine, title=title, subj_id=subj_id
         ))
-        cur.execute('UPDATE subjects_10t_2 SET cabines = "{cabine}" WHERE title = "{title}" AND subj_id = "{subj_id}"'.format(
+        cur_sub.execute('UPDATE subjects_10t_2 SET cabines = "{cabine}" WHERE title = "{title}" AND subj_id = "{subj_id}"'.format(
             cabine=cabine, title=title, subj_id=subj_id
         ))
-        db.commit()
+        db_sub.commit()
 
 async def select_class(message: types.Message):
     global class_id
