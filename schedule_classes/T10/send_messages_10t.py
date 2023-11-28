@@ -43,76 +43,76 @@ async def messages_10t(message: types.Message):
                                     reply_markup=kb.days_second)
                 
             if (message.text == 'Полностью' and group_id == 1 and class_id == '10Т'):
-                await main.bot.send_message(chat_id=message.from_user.id, text=msg_10t_1.full_schedule_first, parse_mode='html')
+                await main.bot.send_message(chat_id=message.from_user.id, text=(await msg_10t_1.return_schedule('full')), parse_mode='html')
     
             if (message.text == 'Полностью' and group_id == 2 and class_id == '10Т'):
-                await main.bot.send_message(chat_id=message.from_user.id, text=msg_10t_2.full_schedule_second, parse_mode='html')
+                await main.bot.send_message(chat_id=message.from_user.id, text=(await msg_10t_2.return_schedule('full')), parse_mode='html')
     
             if (message.text == 'На завтра'  and group_id == 1 and class_id == '10Т'):
                 if (datetime.now().weekday() + 1 == 0):
-                    await main.bot.send_message(chat_id=message.from_user.id, text=msg_10t_1.monday, parse_mode='html')
+                    await main.bot.send_message(chat_id=message.from_user.id, text=(await msg_10t_1.return_schedule('monday')), parse_mode='html')
                 if (datetime.now().weekday() + 1 == 1):
-                    await main.bot.send_message(chat_id=message.from_user.id, text=msg_10t_1.tuesday_first, parse_mode='html')
+                    await main.bot.send_message(chat_id=message.from_user.id, text=(await msg_10t_1.return_schedule('tuesday')), parse_mode='html')
                 if (datetime.now().weekday() + 1 == 2):
-                    await main.bot.send_message(chat_id=message.from_user.id, text=msg_10t_1.wednesday_first, parse_mode='html')
+                    await main.bot.send_message(chat_id=message.from_user.id, text=(await msg_10t_1.return_schedule('wednesday')), parse_mode='html')
                 if (datetime.now().weekday() + 1 == 3):
-                    await main.bot.send_message(chat_id=message.from_user.id, text=msg_10t_1.thursday_first, parse_mode='html')
+                    await main.bot.send_message(chat_id=message.from_user.id, text=(await msg_10t_1.return_schedule('thursday')), parse_mode='html')
                 if (datetime.now().weekday() + 1 == 4):
-                    await main.bot.send_message(chat_id=message.from_user.id, text=msg_10t_1.friday, parse_mode='html')
+                    await main.bot.send_message(chat_id=message.from_user.id, text=(await msg_10t_1.return_schedule('friday')), parse_mode='html')
                 if (datetime.now().weekday() + 1 == 5):
-                    await main.bot.send_message(chat_id=message.from_user.id, text=msg_10t_1.saturday_first, parse_mode='html')
+                    await main.bot.send_message(chat_id=message.from_user.id, text=(await msg_10t_1.return_schedule('saturday')), parse_mode='html')
                 if (datetime.now().weekday() + 1 == 7):
-                    await main.bot.send_message(chat_id=message.from_user.id, text=msg_10t_1.monday, parse_mode='html')
+                    await main.bot.send_message(chat_id=message.from_user.id, text=(await msg_10t_1.return_schedule('monday')), parse_mode='html')
                 if (datetime.now().weekday() + 1 == 6):
                     await main.bot.send_message(chat_id=message.from_user.id, text='Завтра выходной 😁')
     
             if (message.text == 'На завтра' and group_id == 2 and class_id == '10Т'):
                 if (datetime.now().weekday() + 1 == 0):
-                    await main.bot.send_message(chat_id=message.from_user.id, text=msg_10t_2.monday, parse_mode='html')
+                    await main.bot.send_message(chat_id=message.from_user.id, text=(await msg_10t_2.return_schedule('monday')), parse_mode='html')
                 if (datetime.now().weekday() + 1 == 1):
-                    await main.bot.send_message(chat_id=message.from_user.id, text=msg_10t_2.tuesday_second, parse_mode='html')
+                    await main.bot.send_message(chat_id=message.from_user.id, text=(await msg_10t_2.return_schedule('tuesday')), parse_mode='html')
                 if (datetime.now().weekday() + 1 == 2):
-                    await main.bot.send_message(chat_id=message.from_user.id, text=msg_10t_2.wednesday_second, parse_mode='html')
+                    await main.bot.send_message(chat_id=message.from_user.id, text=(await msg_10t_2.return_schedule('wednesday')), parse_mode='html')
                 if (datetime.now().weekday() + 1 == 3):
-                    await main.bot.send_message(chat_id=message.from_user.id, text=msg_10t_2.thursday_second, parse_mode='html')
+                    await main.bot.send_message(chat_id=message.from_user.id, text=(await msg_10t_2.return_schedule('thursday')), parse_mode='html')
                 if (datetime.now().weekday() + 1 == 4):
-                    await main.bot.send_message(chat_id=message.from_user.id, text=msg_10t_2.friday, parse_mode='html')
+                    await main.bot.send_message(chat_id=message.from_user.id, text=(await msg_10t_2.return_schedule('friday')), parse_mode='html')
                 if (datetime.now().weekday() + 1 == 5):
-                    await main.bot.send_message(chat_id=message.from_user.id, text=msg_10t_2.saturday_second, parse_mode='html')
+                    await main.bot.send_message(chat_id=message.from_user.id, text=(await msg_10t_2.return_schedule('saturday')), parse_mode='html')
                 if (datetime.now().weekday() + 1 == 7):
-                    await main.bot.send_message(chat_id=message.from_user.id, text=msg_10t_2.monday, parse_mode='html')
+                    await main.bot.send_message(chat_id=message.from_user.id, text=(await msg_10t_2.return_schedule('monday')), parse_mode='html')
                 if (datetime.now().weekday() + 1 == 6):
                     await main.bot.send_message(chat_id=message.from_user.id, text='Завтра выходной 😁')
     
             if (message.text == 'На сегодня' and group_id == 1 and class_id == '10Т'):
                 if (datetime.now().weekday() == 0):
-                    await main.bot.send_message(chat_id=message.from_user.id, text=msg_10t_1.monday, parse_mode='html')
+                    await main.bot.send_message(chat_id=message.from_user.id, text=(await msg_10t_1.return_schedule('monday')), parse_mode='html')
                 if (datetime.now().weekday() == 1):
-                    await main.bot.send_message(chat_id=message.from_user.id, text=msg_10t_1.tuesday_first, parse_mode='html')
+                    await main.bot.send_message(chat_id=message.from_user.id, text=(await msg_10t_1.return_schedule('tuesday')), parse_mode='html')
                 if (datetime.now().weekday() == 2):
-                    await main.bot.send_message(chat_id=message.from_user.id, text=msg_10t_1.wednesday_first, parse_mode='html')
+                    await main.bot.send_message(chat_id=message.from_user.id, text=(await msg_10t_1.return_schedule('wednesday')), parse_mode='html')
                 if (datetime.now().weekday() == 3):
-                    await main.bot.send_message(chat_id=message.from_user.id, text=msg_10t_1.thursday_first, parse_mode='html')
+                    await main.bot.send_message(chat_id=message.from_user.id, text=(await msg_10t_1.return_schedule('thursday')), parse_mode='html')
                 if (datetime.now().weekday() == 4):
-                    await main.bot.send_message(chat_id=message.from_user.id, text=msg_10t_1.friday, parse_mode='html')
+                    await main.bot.send_message(chat_id=message.from_user.id, text=(await msg_10t_1.return_schedule('friday')), parse_mode='html')
                 if (datetime.now().weekday() == 5):
-                    await main.bot.send_message(chat_id=message.from_user.id, text=msg_10t_1.saturday_first, parse_mode='html')
+                    await main.bot.send_message(chat_id=message.from_user.id, text=(await msg_10t_1.return_schedule('saturday')), parse_mode='html')
                 if (datetime.now().weekday() == 6):
                     await main.bot.send_message(chat_id=message.from_user.id, text='Сегодня выходной!')
     
             if (message.text == 'На сегодня' and group_id == 2 and class_id == '10Т'):
                 if (datetime.now().weekday() == 0):
-                    await main.bot.send_message(chat_id=message.from_user.id, text=msg_10t_2.monday, parse_mode='html')
+                    await main.bot.send_message(chat_id=message.from_user.id, text=(await msg_10t_2.return_schedule('monday')), parse_mode='html')
                 if (datetime.now().weekday() == 1):
-                    await main.bot.send_message(chat_id=message.from_user.id, text=msg_10t_2.tuesday_second, parse_mode='html')
+                    await main.bot.send_message(chat_id=message.from_user.id, text=(await msg_10t_2.return_schedule('tuesday')), parse_mode='html')
                 if (datetime.now().weekday() == 2):
-                    await main.bot.send_message(chat_id=message.from_user.id, text=msg_10t_2.wednesday_second, parse_mode='html')
+                    await main.bot.send_message(chat_id=message.from_user.id, text=(await msg_10t_2.return_schedule('wednesday')), parse_mode='html')
                 if (datetime.now().weekday() == 3):
-                    await main.bot.send_message(chat_id=message.from_user.id, text=msg_10t_2.thursday_second, parse_mode='html')
+                    await main.bot.send_message(chat_id=message.from_user.id, text=(await msg_10t_2.return_schedule('thursday')), parse_mode='html')
                 if (datetime.now().weekday() == 4):
-                    await main.bot.send_message(chat_id=message.from_user.id, text=msg_10t_2.friday, parse_mode='html')
+                    await main.bot.send_message(chat_id=message.from_user.id, text=(await msg_10t_2.return_schedule('friday')), parse_mode='html')
                 if (datetime.now().weekday() == 5):
-                    await main.bot.send_message(chat_id=message.from_user.id, text=msg_10t_2.saturday_second, parse_mode='html')
+                    await main.bot.send_message(chat_id=message.from_user.id, text=(await msg_10t_2.return_schedule('saturday')), parse_mode='html')
                 if (datetime.now().weekday() == 6):
                     await main.bot.send_message(chat_id=message.from_user.id, text='Сегодня выходной!')
     

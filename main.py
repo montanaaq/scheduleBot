@@ -42,15 +42,11 @@ async def main():
 async def on_startup(_):
     await db_start.main_db_start()
 
-    # await db_start.create_subjects_1()
     # await db_start.t10_db_start_1()
-    # await db_start.create_subjects_2()
     # await db_start.t10_db_start_2()
 
     await db_start.create_subjects_1()
-    await msg_10t_1.add_subjects()
     await db_start.create_subjects_2()
-    await msg_10t_2.add_subjects()
 
     print('Database started!')
     print('Bot started!')
@@ -67,8 +63,6 @@ class Form(StatesGroup):
 #     web = types.KeyboardButton('🔗 Расписание', web_app=webapp)
 #     markup.add(web)
 #     await bot.send_message(chat_id=message.chat.id, text='Привет! Нажми кнопку ниже, чтобы открыть сайт', reply_markup=markup)
-cur.execute('DELETE FROM users WHERE tg_id=984383301')
-db.commit()
 @dp.message_handler(commands=['notify'])
 async def notifications(message: types.Message):
     users = [row[0] for row in cur.execute('SELECT tg_id FROM users WHERE class_id = 0').fetchall()]
@@ -429,40 +423,40 @@ async def callback(call: types.CallbackQuery) -> None:
     # days
     elif call.data == 'monday_first':
         await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        await bot.send_message(chat_id=call.message.chat.id, text=msg_10t_1.monday, parse_mode='html', reply_markup=kb.days_first)
+        await bot.send_message(chat_id=call.message.chat.id, text=(await msg_10t_1.return_schedule('monday')), parse_mode='html', reply_markup=kb.days_first)
     elif call.data == 'monday_second':
         await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        await bot.send_message(chat_id=call.message.chat.id, text=msg_10t_2.monday, parse_mode='html', reply_markup=kb.days_second)
+        await bot.send_message(chat_id=call.message.chat.id, text=(await msg_10t_2.return_schedule('monday')), parse_mode='html', reply_markup=kb.days_second)
     elif call.data == 'tuesday_first':
         await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        await bot.send_message(chat_id=call.message.chat.id, text=msg_10t_1.tuesday_first, parse_mode='html', reply_markup=kb.days_first)
+        await bot.send_message(chat_id=call.message.chat.id, text=(await msg_10t_1.return_schedule('tuesday')), parse_mode='html', reply_markup=kb.days_first)
     elif call.data == 'tuesday_second':
         await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        await bot.send_message(chat_id=call.message.chat.id, text=msg_10t_2.tuesday_second, parse_mode='html', reply_markup=kb.days_second)
+        await bot.send_message(chat_id=call.message.chat.id, text=(await msg_10t_2.return_schedule('tuesday')), parse_mode='html', reply_markup=kb.days_second)
     elif call.data == 'wednesday_first':
         await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        await bot.send_message(chat_id=call.message.chat.id, text=msg_10t_1.wednesday_first, parse_mode='html', reply_markup=kb.days_first)
+        await bot.send_message(chat_id=call.message.chat.id, text=(await msg_10t_1.return_schedule('wednesday')), parse_mode='html', reply_markup=kb.days_first)
     elif call.data == 'wednesday_second':
         await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        await bot.send_message(chat_id=call.message.chat.id, text=msg_10t_2.wednesday_second, parse_mode='html', reply_markup=kb.days_second)
+        await bot.send_message(chat_id=call.message.chat.id, text=(await msg_10t_2.return_schedule('wednesday')), parse_mode='html', reply_markup=kb.days_second)
     elif call.data == 'thursday_first':
         await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        await bot.send_message(chat_id=call.message.chat.id, text=msg_10t_1.thursday_first, parse_mode='html', reply_markup=kb.days_first)
+        await bot.send_message(chat_id=call.message.chat.id, text=(await msg_10t_1.return_schedule('thursday')), parse_mode='html', reply_markup=kb.days_first)
     elif call.data == 'thursday_second':
         await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        await bot.send_message(chat_id=call.message.chat.id, text=msg_10t_2.thursday_second, parse_mode='html', reply_markup=kb.days_second)
+        await bot.send_message(chat_id=call.message.chat.id, text=(await msg_10t_2.return_schedule('thursday')), parse_mode='html', reply_markup=kb.days_second)
     elif call.data == 'friday_first':
         await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        await bot.send_message(chat_id=call.message.chat.id, text=msg_10t_1.friday, parse_mode='html', reply_markup=kb.days_first)
+        await bot.send_message(chat_id=call.message.chat.id, text=(await msg_10t_1.return_schedule('friday')), parse_mode='html', reply_markup=kb.days_first)
     elif call.data == 'friday_second':
         await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        await bot.send_message(chat_id=call.message.chat.id, text=msg_10t_2.friday, parse_mode='html', reply_markup=kb.days_second)
+        await bot.send_message(chat_id=call.message.chat.id, text=(await msg_10t_2.return_schedule('friday')), parse_mode='html', reply_markup=kb.days_second)
     elif call.data == 'saturday_first':
         await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        await bot.send_message(chat_id=call.message.chat.id, text=msg_10t_1.saturday_first, parse_mode='html', reply_markup=kb.days_first)
+        await bot.send_message(chat_id=call.message.chat.id, text=(await msg_10t_1.return_schedule('saturday')), parse_mode='html', reply_markup=kb.days_first)
     elif call.data == 'saturday_second':
         await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        await bot.send_message(chat_id=call.message.chat.id, text=msg_10t_2.saturday_second, parse_mode='html', reply_markup=kb.days_second)
+        await bot.send_message(chat_id=call.message.chat.id, text=(await msg_10t_2.return_schedule('saturday')), parse_mode='html', reply_markup=kb.days_second)
 
     # notifications    
 
