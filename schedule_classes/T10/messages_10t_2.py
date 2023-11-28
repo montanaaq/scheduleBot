@@ -169,6 +169,7 @@ async def return_schedule(schedule):
                                                     f'\n<b>4</b> |⌛️<i>10:40-11:20</i> {thursday[3][1]}  <b>{thursday[3][2]}</b>'
                                                     f'\n<b>5</b> |⌛️<i>11:40-12:20</i> {thursday[4][1]}  <b>{thursday[4][2]}</b>'
                                                     f'\n<b>6</b> |⌛️<i>12:25-13:05</i> {thursday[5][1]}  <b>{thursday[5][2]}</b>'
+                                                    f'\n<b>7</b> |⌛️<i>13:10-13:50</i> {thursday[6][1]}  <b>{thursday[6][2]}</b>'
                                                     '\n————————————————————'
                                                     f'\n═────<b>{friday[0][0]}</b>────═'
                                                     '\n————————————————————'
@@ -178,6 +179,7 @@ async def return_schedule(schedule):
                                                     f'\n<b>4</b> |⌛️<i>10:40-11:20</i> {friday[3][1]}  <b>{friday[3][2]}</b>'
                                                     f'\n<b>5</b> |⌛️<i>11:40-12:20</i> {friday[4][1]}  <b>{friday[4][2]}</b>'
                                                     f'\n<b>6</b> |⌛️<i>12:25-13:05</i> {friday[5][1]}  <b>{friday[5][2]}</b>'
+                                                    f'\n<b>7</b> |⌛️<i>13:10-13:50</i> {friday[6][1]}  <b>{friday[6][2]}</b>'
                                                     '\n————————————————————'
                                                     f'\n═────<b>{saturday[0][0]}</b>────═'
                                                     f'\n————————————————————'
@@ -232,6 +234,7 @@ async def return_schedule(schedule):
                                                     f'\n<b>4</b> |⌛️<i>10:40-11:20</i> {thursday[3][1]}  <b>{thursday[3][2]}</b>'
                                                     f'\n<b>5</b> |⌛️<i>11:40-12:20</i> {thursday[4][1]}  <b>{thursday[4][2]}</b>'
                                                     f'\n<b>6</b> |⌛️<i>12:25-13:05</i> {thursday[5][1]}  <b>{thursday[5][2]}</b>'
+                                                    f'\n<b>7</b> |⌛️<i>13:10-13:50</i> {thursday[6][1]}  <b>{thursday[6][2]}</b>'
                                                     f'\n————————————————————')
         return thursday_second
     if schedule == 'friday':
@@ -243,6 +246,7 @@ async def return_schedule(schedule):
                                                     f'\n<b>4</b> |⌛️<i>10:40-11:20</i> {friday[3][1]}  <b>{friday[3][2]}</b>'
                                                     f'\n<b>5</b> |⌛️<i>11:40-12:20</i> {friday[4][1]}  <b>{friday[4][2]}</b>'
                                                     f'\n<b>6</b> |⌛️<i>12:25-13:05</i> {friday[5][1]}  <b>{friday[5][2]}</b>'
+                                                    f'\n<b>7</b> |⌛️<i>13:10-13:50</i> {friday[6][1]}  <b>{friday[6][2]}</b>'
                                                     f'\n————————————————————')
         return friday
     if schedule == 'saturday':
