@@ -373,12 +373,30 @@ async def changes_in_schedule(message: types.Message):
                                                             # content_types=['text'])
 @dp.message_handler(content_types=['text'])
 async def func(message: types.Message):
-    preferred_message = ['/start', '/donate', '/notify', 'На завтра', 'На сегодня', 'По дням', 'Обратная связь', 'Донат', 'Полностью', 'Учителя', 'Мой класс', 'Профиль']
-    if message.chat.type == 'private' and message.text not in preferred_message:
-        await bot.send_message(chat_id=message.chat.id, text='Я тебя не понимаю...')
-    await send_msg_8i.messages_8i(message)
-    await send_msg_10t.messages_10t(message)
-
+    class_id = cur.execute('SELECT class_id FROM users WHERE tg_id = "{id}"'.format(id=message.from_user.id)).fetchone()[0]
+    users = [row[0] for row in cur.execute('SELECT tg_id FROM users WHERE class_id = 0').fetchall()]
+    users_id = [row[0] for row in cur.execute('SELECT tg_id FROM users').fetchall()]
+    formatted_messages = [
+          'На завтра',
+          'На сегодня',
+          'Полностью',
+          'По дням',
+          'Профиль',
+          'Донат',
+          '/notify',
+          'Обратная связь',
+          'Учителя',
+          'Мой класс',
+        ]
+    if class_id == '0':
+        if (message.text in formatted_messages and not message.from_user.id in users_id or message.text in formatted_messages and message.from_user.id in users):
+          await bot.send_message(chat_id=message.from_user.id, text='Мы не нашли вас в базе данных, попробуйте /start и повторите попытку!')
+    if message.text not in formatted_messages:
+            await bot.send_message(chat_id=message.chat.id, text='Я тебя не понимаю...')
+    elif class_id == '8И':
+        await send_msg_8i.messages_8i(message)
+    elif class_id == '10Т':
+        await send_msg_10t.messages_10t(message)
 async def add_user_to_group(id: int, group: int):
     cur.execute('UPDATE users SET group_id = "{group}" WHERE tg_id = "{id}"'.format(id=id, group=int(group)))
     db.commit()
