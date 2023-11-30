@@ -62,4 +62,4 @@ async def profile(call: types.CallbackQuery):
     elif call.data == 'unregister' and class_id == '8И':
         await main.bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
         await main.proccess_unregister(call.from_user.id)
-        await main.bot.send_message(chat_id=call.message.chat.id, text='<b>Вы успешно сбросили регистрацию!</b>\n\n<i>/start</i> - для начала работы бота', parse_mode='html')
+        await main.bot.send_message(chat_id=call.message.chat.id, text='<b>Вы успешно сбросили регистрацию!</b>\n\n<i>/start</i> - для начала работы бота', parse_mode='html',reply_markup=types.ReplyKeyboardRemove())

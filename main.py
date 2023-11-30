@@ -401,7 +401,7 @@ async def callback(call: types.CallbackQuery) -> None:
     if call.data == 'unreg':
         await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
         await proccess_unregister(call.from_user.id)
-        await bot.send_message(chat_id=call.message.chat.id, text='<b>Вы успешно сбросили регистрацию!</b>\n\n<i>/start</i> - для начала работы бота', parse_mode='html')
+        await bot.send_message(chat_id=call.message.chat.id, text='<b>Вы успешно сбросили регистрацию!</b>\n\n<i>/start</i> - для начала работы бота', parse_mode='html', reply_markup=types.ReplyKeyboardRemove())
 
     if call.data == 'register':
         await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
