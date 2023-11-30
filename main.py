@@ -76,6 +76,11 @@ class Form(StatesGroup):
 #     web = types.KeyboardButton('🔗 Расписание', web_app=webapp)
 #     markup.add(web)
 #     await bot.send_message(chat_id=message.chat.id, text='Привет! Нажми кнопку ниже, чтобы открыть сайт', reply_markup=markup)
+
+@dp.message_handler(commands=['unregister'])
+async def unregister(message: types.Message):
+    await bot.send_message(chat_id=message.chat.id, text='Чтобы сбросить регистрацию, нажми на кнопку ниже', reply_markup=kb.unregister_markup)
+
 @dp.message_handler(commands=['notify'])
 async def notifications(message: types.Message):
     users = [row[0] for row in cur.execute('SELECT tg_id FROM users WHERE class_id = 0').fetchall()]
@@ -392,6 +397,11 @@ async def callback(call: types.CallbackQuery) -> None:
     await callbacks_10t.callbacks(call)
     await callbacks_8i.callbacks(call)
     # notifications    
+
+    if call.data == 'unreg':
+        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        await proccess_unregister(call.from_user.id)
+        await bot.send_message(chat_id=call.message.chat.id, text='<b>Вы успешно сбросили регистрацию!</b>\n\n<i>/start</i> - для начала работы бота', parse_mode='html')
 
     if call.data == 'register':
         await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
