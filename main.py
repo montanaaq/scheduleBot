@@ -47,7 +47,7 @@ bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher(bot, storage=storage)
 
 async def main():
-    await send_message_cron()
+    await send_msg_10t.send_message_cron()
 
 async def on_startup(_):
     await db_start.main_db_start()
@@ -110,39 +110,15 @@ async def off_notify(message: types.Message):
                            text='✅ Успешно! Оповещения о расписании <i>выключены</i>. <b>Теперь они не будут больше приходить.</b>',
                            parse_mode='html')
 
-async def send_message_cron():
-    users_first = [row[0] for row in cur.execute('SELECT tg_id FROM users WHERE isNotified = "{isNotified}" AND group_id = "{group_id}"'.format(isNotified=1, group_id=1)).fetchall()]
-    users_second = [i[0] for i in cur.execute('SELECT tg_id FROM users WHERE isNotified = "{isNotified}" AND group_id = "{group_id}"'.format(isNotified=1, group_id=2)).fetchall()]
-    for user in users_first:
-        if datetime.now().weekday() == 0:
-            await bot.send_message(chat_id=user, text=msg_10t_1.monday, parse_mode='html')
-        if datetime.now().weekday() == 1:
-            await bot.send_message(chat_id=user, text=msg_10t_1.tuesday_first, parse_mode='html')
-        if datetime.now().weekday() == 2:
-            await bot.send_message(chat_id=user, text=msg_10t_1.wednesday_first, parse_mode='html')
-        if datetime.now().weekday() == 3:
-            await bot.send_message(chat_id=user, text=msg_10t_1.thursday_first, parse_mode='html')
-        if datetime.now().weekday() == 4:
-            await bot.send_message(chat_id=user, text=msg_10t_1.friday, parse_mode='html')
-        if datetime.now().weekday() == 5:
-            await bot.send_message(chat_id=user, text=msg_10t_1.saturday_first, parse_mode='html')
-    for user_2 in users_second:
-        if datetime.now().weekday() == 0:
-            await bot.send_message(chat_id=user_2, text=msg_10t_2.monday, parse_mode='html')
-        if datetime.now().weekday() == 1:
-            await bot.send_message(chat_id=user_2, text=msg_10t_2.tuesday_second, parse_mode='html')
-        if datetime.now().weekday() == 2:
-            await bot.send_message(chat_id=user_2, text=msg_10t_2.wednesday_second, parse_mode='html')
-        if datetime.now().weekday() == 3:
-            await bot.send_message(chat_id=user_2, text=msg_10t_2.thursday_second, parse_mode='html')
-        if datetime.now().weekday() == 4:
-            await bot.send_message(chat_id=user_2, text=msg_10t_2.friday, parse_mode='html')
-        if datetime.now().weekday() == 5:
-            await bot.send_message(chat_id=user_2, text=msg_10t_2.saturday_second, parse_mode='html')
-
-scheduler = AsyncIOScheduler(timezone='Europe/Moscow')
-scheduler.add_job(send_message_cron, 'cron', day_of_week='mon-sat', hour=7, minute=45)
-scheduler.start()
+async def start_scheduler(class_id):
+    if class_id == '10Т':
+        scheduler = AsyncIOScheduler(timezone='Europe/Moscow')
+        scheduler.add_job(send_msg_10t.send_message_cron, 'cron', day_of_week='mon-sat', hour=7, minute=45)
+        scheduler.start()
+    if class_id == '8И':        
+        scheduler = AsyncIOScheduler(timezone='Europe/Moscow')
+        scheduler.add_job(send_msg_8i.send_message_cron, 'cron', day_of_week='mon-sat', hour=7, minute=45)
+        scheduler.start()
 
 @dp.message_handler(commands=['push'])
 async def push(message: types.Message):
@@ -453,6 +429,8 @@ async def callback(call: types.CallbackQuery) -> None:
     elif call.data == 'on_notifications':
         await notify_db(call.from_user.id, 1)
         await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        class_id = cur.execute('SELECT class_id FROM users WHERE tg_id = "{id}"'.format(id=call.from_user.id)).fetchone()[0]
+        await start_scheduler(class_id)
         await on_notify(call.message)
     elif call.data == 'off_notifications':
         await notify_db(call.from_user.id, 0)

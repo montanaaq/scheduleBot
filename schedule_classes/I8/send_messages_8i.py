@@ -6,6 +6,37 @@ import schedule_classes.I8.messages_8i_2 as msg_8i_2
 from datetime import datetime
 import keyboards.keyboards as kb
 
+async def send_message_cron():
+    users_first = [row[0] for row in main.cur.execute('SELECT tg_id FROM users WHERE isNotified = "{isNotified}" AND group_id = "{group_id}"'.format(isNotified=1, group_id=1)).fetchall()]
+    users_second = [i[0] for i in main.cur.execute('SELECT tg_id FROM users WHERE isNotified = "{isNotified}" AND group_id = "{group_id}"'.format(isNotified=1, group_id=2)).fetchall()]
+    for user in users_first:
+        if datetime.now().weekday() == 0:
+            await main.bot.send_message(chat_id=user, text=(await msg_8i_1.return_schedule('monday')), parse_mode='html')
+        if datetime.now().weekday() == 1:
+            await main.bot.send_message(chat_id=user, text=(await msg_8i_1.return_schedule('tuesday')), parse_mode='html')
+        if datetime.now().weekday() == 2:
+            await main.bot.send_message(chat_id=user, text=(await msg_8i_1.return_schedule('wednesday')), parse_mode='html')
+        if datetime.now().weekday() == 3:
+            await main.bot.send_message(chat_id=user, text=(await msg_8i_1.return_schedule('thursday')), parse_mode='html')
+        if datetime.now().weekday() == 4:
+            await main.bot.send_message(chat_id=user, text=(await msg_8i_1.return_schedule('friday')), parse_mode='html')
+        if datetime.now().weekday() == 5:
+            await main.bot.send_message(chat_id=user, text=(await msg_8i_1.return_schedule('saturday')), parse_mode='html')
+    for user_2 in users_second:
+        if datetime.now().weekday() == 0:
+            await main.bot.send_message(chat_id=user_2, text=(await msg_8i_2.return_schedule('monday')), parse_mode='html')
+        if datetime.now().weekday() == 1:
+            await main.bot.send_message(chat_id=user_2, text=(await msg_8i_2.return_schedule('tuesday')), parse_mode='html')
+        if datetime.now().weekday() == 2:
+            await main.bot.send_message(chat_id=user_2, text=(await msg_8i_2.return_schedule('wednesday')), parse_mode='html')
+        if datetime.now().weekday() == 3:
+            await main.bot.send_message(chat_id=user_2, text=(await msg_8i_2.return_schedule('thursday')), parse_mode='html')
+        if datetime.now().weekday() == 4:
+            await main.bot.send_message(chat_id=user_2, text=(await msg_8i_2.return_schedule('friday')), parse_mode='html')
+        if datetime.now().weekday() == 5:
+            await main.bot.send_message(chat_id=user_2, text=(await msg_8i_2.return_schedule('saturday')), parse_mode='html')
+
+
 async def messages_8i(message: types.Message):
         users = [row[0] for row in main.cur.execute('SELECT tg_id FROM users WHERE tg_id="{id}" AND class_id = 0'.format(id=message.from_user.id)).fetchall()]
         users_id = [row[0] for row in main.cur.execute('SELECT tg_id FROM users').fetchall()]
