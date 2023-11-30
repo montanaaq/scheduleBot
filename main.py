@@ -362,10 +362,6 @@ async def change_group(message: types.Message):
     markup.row(change)
     await bot.send_message(chat_id=message.chat.id, text='Хочешь изменить группу?', reply_markup=markup)
 
-
-async def my_class(message: types.Message):
-    await bot.send_message(chat_id=message.chat.id, text=msg_10t_1.cheliki, parse_mode='html')
-
 async def changes_in_schedule(message: types.Message):
     await bot.send_message(chat_id=message.chat.id, text='Пока изменений в расписании не обнаружено.',
                            parse_mode='html')
@@ -390,25 +386,8 @@ async def proccess_unregister(id: int):
 @dp.callback_query_handler()
 async def callback(call: types.CallbackQuery) -> None:
     # profile
-    if call.data == 'change_group':
-        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        await change_group(call.message)
-    elif call.data == 'change':
-        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        await change_group_start(call.message)
-    elif call.data == 'donate':
-        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        await donate(call.message)
-    elif call.data == 'my_class':
-        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        await my_class(call.message)
-    elif call.data == 'changes_in_schedule':
-        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        await changes_in_schedule(call.message)
-    elif call.data == 'unregister':
-        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        await proccess_unregister(call.from_user.id)
-        await bot.send_message(chat_id=call.message.chat.id, text='<b>Вы успешно сбросили регистрацию!</b>\n\n<i>/start</i> - для начала работы бота', parse_mode='html')
+    await callbacks_8i.profile(call)
+    await callbacks_10t.profile(call)
     # days
     await callbacks_10t.callbacks(call)
     await callbacks_8i.callbacks(call)
