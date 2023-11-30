@@ -21,13 +21,20 @@ from config import BOT_TOKEN, admin_id
 
 import schedule_classes.T10.messages_10t_1 as msg_10t_1
 import schedule_classes.T10.messages_10t_2 as msg_10t_2
-import keyboards.keyboards as kb
 import schedule_classes.T10.send_messages_10t as send_msg_10t
+import schedule_classes.T10.callbacks as callbacks_10t
+
+import schedule_classes.I8.messages_8i_1 as msg_8i_1
+import schedule_classes.I8.messages_8i_2 as msg_8i_2
+import schedule_classes.I8.send_messages_8i as send_msg_8i
+import schedule_classes.I8.callbacks as callbacks_8i
+
+import keyboards.keyboards as kb
 import database_start as db_start
 
 import sqlite3 as sql
 
-from background import keep_alive
+# from background import keep_alive
 
 db = sql.connect('database/database.db')
 cur = db.cursor()
@@ -47,10 +54,13 @@ async def on_startup(_):
 
     # await db_start.t10_db_start_1()
     # await db_start.t10_db_start_2()
+    # await msg_8i_1.i8_db_start_1()
+    # await msg_8i_2.i8_db_start_2()
 
     await db_start.create_subjects_1()
     await db_start.create_subjects_2()
-
+    await msg_8i_1.create_subjects_1()
+    await msg_8i_2.create_subjects_2()
     print('Database started!')
     print('Bot started!')
 
@@ -326,7 +336,7 @@ async def set_class(id: int, class_id: str):
 
 async def complete_class(message: types.Message):
     global class_id
-    classes = ['10Т']
+    classes = ['10Т', '8И']
     if (isinstance(message.text, str) and 2 <= len(message.text) <= 3 and message.text.upper() in classes):
         await set_class(message.from_user.id, message.text.upper())
         await bot.delete_message(chat_id=message.chat.id, message_id=class_id.message_id)
@@ -389,7 +399,7 @@ async def func(message: types.Message):
     preferred_message = ['/start', '/donate', '/notify', 'На завтра', 'На сегодня', 'По дням', 'Обратная связь', 'Донат', 'Полностью', 'Учителя', 'Мой класс', 'Профиль']
     if message.chat.type == 'private' and message.text not in preferred_message:
         await bot.send_message(chat_id=message.chat.id, text='Я тебя не понимаю...')
-
+    await send_msg_8i.messages_8i(message)
     await send_msg_10t.messages_10t(message)
 
 async def add_user_to_group(id: int, group: int):
@@ -424,46 +434,11 @@ async def callback(call: types.CallbackQuery) -> None:
         await proccess_unregister(call.from_user.id)
         await bot.send_message(chat_id=call.message.chat.id, text='<b>Вы успешно сбросили регистрацию!</b>\n\n<i>/start</i> - для начала работы бота', parse_mode='html')
     # days
-    elif call.data == 'monday_first':
-        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        await bot.send_message(chat_id=call.message.chat.id, text=(await msg_10t_1.return_schedule('monday')), parse_mode='html', reply_markup=kb.days_first)
-    elif call.data == 'monday_second':
-        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        await bot.send_message(chat_id=call.message.chat.id, text=(await msg_10t_2.return_schedule('monday')), parse_mode='html', reply_markup=kb.days_second)
-    elif call.data == 'tuesday_first':
-        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        await bot.send_message(chat_id=call.message.chat.id, text=(await msg_10t_1.return_schedule('tuesday')), parse_mode='html', reply_markup=kb.days_first)
-    elif call.data == 'tuesday_second':
-        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        await bot.send_message(chat_id=call.message.chat.id, text=(await msg_10t_2.return_schedule('tuesday')), parse_mode='html', reply_markup=kb.days_second)
-    elif call.data == 'wednesday_first':
-        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        await bot.send_message(chat_id=call.message.chat.id, text=(await msg_10t_1.return_schedule('wednesday')), parse_mode='html', reply_markup=kb.days_first)
-    elif call.data == 'wednesday_second':
-        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        await bot.send_message(chat_id=call.message.chat.id, text=(await msg_10t_2.return_schedule('wednesday')), parse_mode='html', reply_markup=kb.days_second)
-    elif call.data == 'thursday_first':
-        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        await bot.send_message(chat_id=call.message.chat.id, text=(await msg_10t_1.return_schedule('thursday')), parse_mode='html', reply_markup=kb.days_first)
-    elif call.data == 'thursday_second':
-        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        await bot.send_message(chat_id=call.message.chat.id, text=(await msg_10t_2.return_schedule('thursday')), parse_mode='html', reply_markup=kb.days_second)
-    elif call.data == 'friday_first':
-        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        await bot.send_message(chat_id=call.message.chat.id, text=(await msg_10t_1.return_schedule('friday')), parse_mode='html', reply_markup=kb.days_first)
-    elif call.data == 'friday_second':
-        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        await bot.send_message(chat_id=call.message.chat.id, text=(await msg_10t_2.return_schedule('friday')), parse_mode='html', reply_markup=kb.days_second)
-    elif call.data == 'saturday_first':
-        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        await bot.send_message(chat_id=call.message.chat.id, text=(await msg_10t_1.return_schedule('saturday')), parse_mode='html', reply_markup=kb.days_first)
-    elif call.data == 'saturday_second':
-        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        await bot.send_message(chat_id=call.message.chat.id, text=(await msg_10t_2.return_schedule('saturday')), parse_mode='html', reply_markup=kb.days_second)
-
+    await callbacks_10t.callbacks(call)
+    await callbacks_8i.callbacks(call)
     # notifications    
 
-    elif call.data == 'register':
+    if call.data == 'register':
         await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
         await start_command(call.message)
 
@@ -504,6 +479,6 @@ async def callback(call: types.CallbackQuery) -> None:
     await select_edit_group_callback(call)
     await select_weekday(call)
 
-keep_alive()
+# keep_alive()
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=False, on_startup=on_startup)
