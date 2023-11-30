@@ -389,11 +389,12 @@ async def func(message: types.Message):
           'Мой класс',
         ]
     if class_id == '0':
-        if (message.text in formatted_messages and not message.from_user.id in users_id or message.text in formatted_messages and message.from_user.id in users):
-          await bot.send_message(chat_id=message.from_user.id, text='Мы не нашли вас в базе данных, попробуйте /start и повторите попытку!')
-    if message.text not in formatted_messages:
+        if message.text not in formatted_messages and message.from_user.id in users_id or message.from_user.id in users:
+            await bot.send_message(chat_id=message.from_user.id, text='Мы не нашли вас в базе данных, попробуйте /start и повторите попытку!')
+    else:
+        if message.text not in formatted_messages: 
             await bot.send_message(chat_id=message.chat.id, text='Я тебя не понимаю...')
-    elif class_id == '8И':
+    if class_id == '8И':
         await send_msg_8i.messages_8i(message)
     elif class_id == '10Т':
         await send_msg_10t.messages_10t(message)
