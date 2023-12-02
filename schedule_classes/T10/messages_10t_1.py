@@ -184,12 +184,12 @@ async def return_schedule(schedule):
                                                     f'\n═────<b>{saturday[0][0]}</b>────═'
                                                     f'\n————————————————————'
                                                     f'\n<b>1</b> |⌛️<i>08:00-08:40</i> {saturday[0][1]}  <b>{saturday[0][2]}</b>'
-                                                    f'\n<b>2</b> |⌛️<i>08:50-09:30</i> {saturday[1][1]}  <b>{saturday[1][2]}</b>'
+                                                    f'\n<b>2</b> |⌛️<i>08:45-09:25</i> {saturday[1][1]}  <b>{saturday[1][2]}</b>'
                                                     f'\n<b>3</b> |⌛️<i>09:40-10:20</i> {saturday[2][1]}  <b>{saturday[2][2]}</b>'
-                                                    f'\n<b>4</b> |⌛️<i>10:40-11:20</i> {saturday[3][1]}  <b>{saturday[3][2]}</b>'
-                                                    f'\n<b>5</b> |⌛️<i>11:40-12:20</i> {saturday[4][1]}  <b>{saturday[4][2]}</b>'
-                                                    f'\n<b>6</b> |⌛️<i>12:25-13:05</i> {saturday[5][1]}  <b>{saturday[5][2]}</b>'
-                                                    f'\n<b>7</b> |⌛️<i>13:10-13:50</i> {saturday[6][1]}  <b>{saturday[6][2]}</b>'
+                                                    f'\n<b>4</b> |⌛️<i>10:35-11:15</i> {saturday[3][1]}  <b>{saturday[3][2]}</b>'
+                                                    f'\n<b>5</b> |⌛️<i>11:30-12:10</i> {saturday[4][1]}  <b>{saturday[4][2]}</b>'
+                                                    f'\n<b>6</b> |⌛️<i>12:15-12:55</i> {saturday[5][1]}  <b>{saturday[5][2]}</b>'
+                                                    f'\n<b>7</b> |⌛️<i>13:00-13:30</i> {saturday[6][1]}  <b>{saturday[6][2]}</b>'
                                                     '\n————————————————————')
         return full_schedule_first
     if schedule == 'monday':
@@ -253,13 +253,13 @@ async def return_schedule(schedule):
         saturday_first = (f'\n═────<b>{saturday[0][0]}</b>────═'
                                                     f'\n————————————————————'
                                                     f'\n<b>1</b> |⌛️<i>08:00-08:40</i> {saturday[0][1]}  <b>{saturday[0][2]}</b>'
-                                                    f'\n<b>2</b> |⌛️<i>08:50-09:30</i> {saturday[1][1]}  <b>{saturday[1][2]}</b>'
+                                                    f'\n<b>2</b> |⌛️<i>08:45-09:25</i> {saturday[1][1]}  <b>{saturday[1][2]}</b>'
                                                     f'\n<b>3</b> |⌛️<i>09:40-10:20</i> {saturday[2][1]}  <b>{saturday[2][2]}</b>'
-                                                    f'\n<b>4</b> |⌛️<i>10:40-11:20</i> {saturday[3][1]}  <b>{saturday[3][2]}</b>'
-                                                    f'\n<b>5</b> |⌛️<i>11:40-12:20</i> {saturday[4][1]}  <b>{saturday[4][2]}</b>'
-                                                    f'\n<b>6</b> |⌛️<i>12:25-13:05</i> {saturday[5][1]}  <b>{saturday[5][2]}</b>'
-                                                    f'\n<b>7</b> |⌛️<i>13:10-13:50</i> {saturday[6][1]}  <b>{saturday[6][2]}</b>'
-                                                    f'\n————————————————————')
+                                                    f'\n<b>4</b> |⌛️<i>10:35-11:15</i> {saturday[3][1]}  <b>{saturday[3][2]}</b>'
+                                                    f'\n<b>5</b> |⌛️<i>11:30-12:10</i> {saturday[4][1]}  <b>{saturday[4][2]}</b>'
+                                                    f'\n<b>6</b> |⌛️<i>12:15-12:55</i> {saturday[5][1]}  <b>{saturday[5][2]}</b>'
+                                                    f'\n<b>7</b> |⌛️<i>13:00-13:30</i> {saturday[6][1]}  <b>{saturday[6][2]}</b>'
+                                                    '\n————————————————————')
         return saturday_first        
 uchitelya = ('Список учителей:'
    '\n-------------------------------------------------'
